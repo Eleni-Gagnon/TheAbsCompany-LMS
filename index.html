@@ -362,34 +362,35 @@ const USERS = {
 };
 
 const COURSES = [
-  {id:7,emoji:'🏢',title:'The Abs Company — Who We Are',cat:'The Abs Company - Who We Are',color:'#dbeafe',mods:4,dur:'30 minutes',enrolled:12,completed:5},
-  {id:1,emoji:'⚖️',title:'Compliance & Ethics',cat:'Legal & Compliance',color:'#e8f0fd',mods:5,dur:'45 minutes',enrolled:12,completed:7},
-  {id:2,emoji:'🔒',title:'Security Fundamentals',cat:'IT & Security',color:'#fef3dc',mods:4,dur:'30 minutes',enrolled:12,completed:9},
-  {id:3,emoji:'📋',title:'HR Policies & Benefits',cat:'Human Resources',color:'#e8f5e3',mods:6,dur:'60 minutes',enrolled:12,completed:4},
-  {id:4,emoji:'💡',title:'Product Knowledge 101',cat:'Product',color:'#f0edfe',mods:8,dur:'60 minutes',enrolled:8,completed:2},
-  {id:5,emoji:'🎯',title:'Leadership Foundations',cat:'Management',color:'#fdeaea',mods:5,dur:'45 minutes',enrolled:5,completed:1},
-  {id:6,emoji:'🤝',title:'Customer Success Playbook',cat:'Sales & CS',color:'#e1f5ee',mods:7,dur:'60 minutes',enrolled:10,completed:6},
+  {id:1, emoji:'🏢',title:'Who We Are, What We Do & How We Do It', cat:'Onboarding',color:'#dbeafe',mods:7,dur:'45 minutes',enrolled:18,completed:0},
+  {id:2, emoji:'⭐',title:'Core Values',                    cat:'Onboarding',color:'#fef3dc',mods:3,dur:'15 minutes',enrolled:18,completed:0},
+  {id:5, emoji:'🗓️',title:'Your First Week',               cat:'Onboarding',color:'#e1f5ee',mods:4,dur:'25 minutes',enrolled:18,completed:0},
+  {id:6, emoji:'🛠️',title:'Tools We Use',                  cat:'Onboarding',color:'#faeeda',mods:3,dur:'20 minutes',enrolled:18,completed:0},
+  {id:7, emoji:'📋',title:'Policies & Expectations',       cat:'Onboarding',color:'#fdeaea',mods:4,dur:'30 minutes',enrolled:18,completed:0},
+  {id:8, emoji:'💰',title:'Compensation & Benefits',       cat:'Onboarding',color:'#e8f0fd',mods:4,dur:'25 minutes',enrolled:18,completed:0},
+  {id:9, emoji:'🎯',title:'Your Role & Goals',             cat:'Onboarding',color:'#eaf3de',mods:3,dur:'20 minutes',enrolled:18,completed:0},
 ];
 
+
 const LEARNERS = [
-  {name:'Eleni Gagnon',ini:'EG',bg:'#dbeafe',tc:'#1a4fa0',dept:'Operations',title:'COO',email:'eleni@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Sean Gagnon',ini:'SG',bg:'#e8f5e3',tc:'#2d6a1f',dept:'Sales',title:'CEO',email:'sean@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Joyce Granville',ini:'JG',bg:'#f0edfe',tc:'#4a38b0',dept:'Operations',title:'Operations Specialist',email:'joyce@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Kristin Harrington',ini:'KH',bg:'#fef3dc',tc:'#8a5a00',dept:'Sales',title:'Sales Manager',email:'kristin@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Kim Healey',ini:'KH',bg:'#fdeaea',tc:'#8a1f1f',dept:'Operations',title:'Vice President',email:'kim@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Ryan Healey',ini:'RH',bg:'#e1f5ee',tc:'#0f6e56',dept:'Sales',title:'Director of Key Accounts',email:'ryan@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'DJ Hoffman',ini:'DH',bg:'#e8f0fd',tc:'#185FA5',dept:'Operations',title:'Customer Experience Manager',email:'dj@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Sean Kirby',ini:'SK',bg:'#faeeda',tc:'#8a5a00',dept:'Sales',title:'VP of Sales',email:'skirby@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Alexia Petrakos',ini:'AP',bg:'#eaf3de',tc:'#3b6d11',dept:'Marketing',title:'Digital Operations Manager',email:'alexia@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Cynthia Ramos',ini:'CR',bg:'#faece7',tc:'#993c1d',dept:'Marketing',title:'VP of Marketing',email:'cindy@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Joseph Ramos',ini:'JR',bg:'#f0ede8',tc:'#5a4a3a',dept:'Marketing',title:'Graphic Designer',email:'joseph@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Kevin Ramos',ini:'KR',bg:'#e8eaf6',tc:'#3949ab',dept:'Marketing',title:'Director of E-Commerce',email:'kevin@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Michael Ritter',ini:'MR',bg:'#fce4ec',tc:'#c62828',dept:'Sales',title:'President',email:'michael@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Josh Brand',ini:'JB',bg:'#e0f7fa',tc:'#00838f',dept:'Sales',title:'Director of International Sales',email:'josh@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Racquel Pagaduan',ini:'RP',bg:'#f3e5f5',tc:'#7b1fa2',dept:'Operations',title:'Operations Coordinator',email:'racquel@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Madelyn Racraquin',ini:'MR',bg:'#fff8e1',tc:'#b45309',dept:'Operations',title:'Sales Coordinator',email:'madelyn@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Denise Grace Hernandez',ini:'DH',bg:'#e8f5e9',tc:'#2e7d32',dept:'Operations',title:'Operations Coordinator',email:'denise@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
-  {name:'Jhoysan Semilla',ini:'JS',bg:'#fbe9e7',tc:'#bf360c',dept:'Operations',title:'Sales Coordinator',email:'jhoysan@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Eleni Gagnon',ini:'EG',bg:'#dbeafe',tc:'#1a4fa0',dept:'Operations',title:'COO',email:'eleni@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Sean Gagnon',ini:'SG',bg:'#e8f5e3',tc:'#2d6a1f',dept:'Sales',title:'CEO',email:'sean@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Joyce Granville',ini:'JG',bg:'#f0edfe',tc:'#4a38b0',dept:'Operations',title:'Operations Specialist',email:'joyce@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Kristin Harrington',ini:'KH',bg:'#fef3dc',tc:'#8a5a00',dept:'Sales',title:'Sales Manager',email:'kristin@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Kim Healey',ini:'KH',bg:'#fdeaea',tc:'#8a1f1f',dept:'Operations',title:'Vice President',email:'kim@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Ryan Healey',ini:'RH',bg:'#e1f5ee',tc:'#0f6e56',dept:'Sales',title:'Director of Key Accounts',email:'ryan@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'DJ Hoffman',ini:'DH',bg:'#e8f0fd',tc:'#185FA5',dept:'Operations',title:'Customer Experience Manager',email:'dj@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Sean Kirby',ini:'SK',bg:'#faeeda',tc:'#8a5a00',dept:'Sales',title:'VP of Sales',email:'skirby@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Alexia Petrakos',ini:'AP',bg:'#eaf3de',tc:'#3b6d11',dept:'Marketing',title:'Digital Operations Manager',email:'alexia@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Cynthia Ramos',ini:'CR',bg:'#faece7',tc:'#993c1d',dept:'Marketing',title:'VP of Marketing',email:'cindy@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Joseph Ramos',ini:'JR',bg:'#f0ede8',tc:'#5a4a3a',dept:'Marketing',title:'Graphic Designer',email:'joseph@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Kevin Ramos',ini:'KR',bg:'#e8eaf6',tc:'#3949ab',dept:'Marketing',title:'Director of E-Commerce',email:'kevin@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Michael Ritter',ini:'MR',bg:'#fce4ec',tc:'#c62828',dept:'Sales',title:'President',email:'michael@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Josh Brand',ini:'JB',bg:'#e0f7fa',tc:'#00838f',dept:'Sales',title:'Director of International Sales',email:'josh@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Racquel Pagaduan',ini:'RP',bg:'#f3e5f5',tc:'#7b1fa2',dept:'Operations',title:'Operations Coordinator',email:'racquel@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Madelyn Racraquin',ini:'MR',bg:'#fff8e1',tc:'#b45309',dept:'Operations',title:'Sales Coordinator',email:'madelyn@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Denise Grace Hernandez',ini:'DH',bg:'#e8f5e9',tc:'#2e7d32',dept:'Operations',title:'Operations Coordinator',email:'denise@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
+  {name:'Jhoysan Semilla',ini:'JS',bg:'#fbe9e7',tc:'#bf360c',dept:'Operations',title:'Sales Coordinator',email:'jhoysan@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[1,2,5,6,7,8,9]},
 ];
 
 const QUIZ = [
@@ -404,14 +405,14 @@ const QUIZ = [
 ];
 
 const CATS = [
-  {name:'The Abs Company - Who We Are', desc:'Our mission, values, culture, history, and what makes us unique.'},
-  {name:'Legal & Compliance', desc:'Workplace conduct, ethics, regulatory requirements, and company policies.'},
-  {name:'IT & Security', desc:'Data protection, cybersecurity practices, and responsible use of technology.'},
-  {name:'Human Resources', desc:'Benefits, PTO, performance reviews, and employee support resources.'},
-  {name:'Product', desc:'Deep dives into our products, features, roadmap, and customer use cases.'},
-  {name:'Management', desc:'Leadership skills, team development, and people management fundamentals.'},
-  {name:'Sales & CS', desc:'Sales playbooks, customer success strategies, and client communication.'},
+  {name:'Onboarding',          desc:'Everything a new team member needs to get up to speed at The Abs Company.'},
+  {name:'Sales',               desc:'Sales process, outreach strategies, tools, and closing techniques.'},
+  {name:'Human Resources',     desc:'Policies, benefits, performance expectations, and employee resources.'},
+  {name:'Operations',          desc:'Workflows, processes, systems, and how we keep things running smoothly.'},
+  {name:'Customer Experience', desc:'How we serve our customers, handle inquiries, and build lasting relationships.'},
+  {name:'Marketing',           desc:'Brand guidelines, campaigns, content strategy, and digital marketing.'},
 ];
+
 
 const NAV = {
   admin:[
@@ -964,9 +965,15 @@ function saveNewCourse(catName){
   COURSES.push({id:newId,emoji:_selectedEmoji,title,cat:catName,color,mods:1,dur,enrolled:0,completed:0});
   if(!CAT_ORDER[catName]) CAT_ORDER[catName]=[];
   CAT_ORDER[catName].push(newId);
+  // initialize empty modules and quiz for the new course
+  COURSE_MODULES[newId]=[
+    {t:'Module 1',type:'doc',status:'draft',blocks:[]},
+  ];
+  COURSE_QUIZZES[newId]=[{q:'',opts:['','','',''],correct:0}];
+  SOP_UPDATES[newId]=[];
   toast(`"${title}" added to ${catName}!`);
   closeModal();
-  renderCourseLibrary(document.getElementById('mainContent'));
+  renderContentLibrary(document.getElementById('mainContent'));
 }
 
 function openReorderModal(catName){
@@ -996,7 +1003,7 @@ function openReorderModal(catName){
     </div>
     <hr class="divider">
     <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" onclick="toast('Order saved!');closeModal();renderCourseLibrary(document.getElementById('mainContent'))">Save Order</button>
+      <button class="btn btn-primary" onclick="toast('Order saved!');closeModal();renderContentLibrary(document.getElementById('mainContent'))">Save Order</button>
       <button class="btn" onclick="closeModal()">Cancel</button>
     </div>`;
   document.getElementById('modalBg').classList.add('open');
@@ -1115,34 +1122,58 @@ function courseCardHTML(co){
   </div>`;
 }
 
-// SOP update history per course id
-const SOP_UPDATES = {
-  1:[{date:'Mar 15, 2026',note:'Updated section 3 — new harassment policy language.',by:'Eleni Gagnon',due:'Mar 22',completions:[
-    {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',done:true,doneDate:'Mar 18'},
-    {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',done:true,doneDate:'Mar 20'},
-    {name:'Kristin Harrington',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',done:false,doneDate:null},
-    {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',done:false,doneDate:null},
-    {name:'James Okafor',ini:'JO',bg:'#fdeaea',tc:'#8a1f1f',done:true,doneDate:'Mar 21'},
-    {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',done:false,doneDate:null},
-  ]}],
-};
+const SOP_UPDATES = {};
 
 const COURSE_MODULES = {
-  1:[
-    {t:'Introduction & Overview',type:'doc',status:'published',attachments:[{kind:'link',val:'https://company.com/ethics-intro'}]},
-    {t:'Core Training Video',type:'video',status:'published',attachments:[{kind:'video',val:'https://youtube.com/watch?v=example'}]},
-    {t:'Knowledge Assessment Quiz',type:'quiz',status:'published',attachments:[]},
-    {t:'Case Studies & Scenarios',type:'doc',status:'draft',attachments:[{kind:'file',val:'CaseStudies_2026.pdf'}]},
-    {t:'Final Sign-Off Checklist',type:'signoff',status:'draft',attachments:[]},
+  1:[ // Who We Are, What We Do & How We Do It
+    {t:'Our Story',type:'doc',status:'published',attachments:[]},
+    {t:'Mission & Vision',type:'video',status:'published',attachments:[]},
+    {t:'Our Products & Services',type:'doc',status:'published',attachments:[]},
+    {t:'Who We Serve',type:'doc',status:'published',attachments:[]},
+    {t:'Our Process & Approach',type:'doc',status:'published',attachments:[]},
+    {t:'What Makes Us Different',type:'video',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
+  ],
+  2:[ // Core Values
+    {t:'Our Core Values',type:'doc',status:'published',attachments:[]},
+    {t:'Values in Action — Real Examples',type:'video',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
+  ],
+  5:[ // Your First Week
+    {t:'Before Day 1 — What to Prepare',type:'doc',status:'published',attachments:[]},
+    {t:'Day 1 Checklist',type:'doc',status:'published',attachments:[]},
+    {t:'Who to Go to For What',type:'doc',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
+  ],
+  6:[ // Tools We Use
+    {t:'Communication Tools',type:'doc',status:'published',attachments:[]},
+    {t:'Project & Task Management',type:'doc',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
+  ],
+  7:[ // Policies & Expectations
+    {t:'Code of Conduct',type:'doc',status:'published',attachments:[]},
+    {t:'Work Hours & Remote Policy',type:'doc',status:'published',attachments:[]},
+    {t:'Confidentiality & Data Privacy',type:'doc',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
+  ],
+  8:[ // Compensation & Benefits
+    {t:'Your Pay — Schedule & Structure',type:'doc',status:'published',attachments:[]},
+    {t:'Health, Dental & Vision',type:'doc',status:'published',attachments:[]},
+    {t:'401k, PTO & Wellness',type:'doc',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
+  ],
+  9:[ // Your Role & Goals
+    {t:'Understanding Your Job Description',type:'doc',status:'published',attachments:[]},
+    {t:'How Success is Measured',type:'doc',status:'published',attachments:[]},
+    {t:'Your 30/60/90 Day Plan',type:'video',status:'published',attachments:[]},
+    {t:'Knowledge Check',type:'quiz',status:'published',attachments:[]},
   ],
 };
 
 function openCourseModal(id){
   const co=COURSES.find(c=>c.id===id);
   if(!COURSE_MODULES[id]) COURSE_MODULES[id]=[
-    {t:'Introduction & Overview',type:'doc',status:'published',attachments:[]},
-    {t:'Core Training Video',type:'video',status:'published',attachments:[]},
-    {t:'Knowledge Assessment Quiz',type:'quiz',status:'draft',attachments:[]},
+    {t:'Module 1',type:'doc',status:'draft',blocks:[]},
   ];
   if(!SOP_UPDATES[id]) SOP_UPDATES[id]=[];
   const mc=document.getElementById('modalContent');
@@ -1221,61 +1252,143 @@ function openCourseModal(id){
 }
 
 function cmModRowHTML(courseId, m, i){
-  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
   const uid='cm_'+courseId+'_'+i;
-  const attachHTML=m.attachments.map(a=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px">
-      <span style="font-size:14px">${{video:'▶️',file:'📎',photo:'🖼️',link:'🔗'}[a.kind]||'📎'}</span>
-      <input type="text" value="${a.val}" style="flex:1;font-size:12px;padding:4px 8px">
-      <button class="btn btn-sm btn-danger" onclick="this.closest('div').remove()">✕</button>
-    </div>`).join('');
+  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+  const blocks=(m.blocks||[]);
+  const blocksHTML=blocks.map((b,bi)=>cmBlockHTML(uid,b,bi)).join('');
+
   return `<div class="mod-block" draggable="true" data-uid="${uid}"
     ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)"
     style="border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden">
+
+    <!-- Header row -->
     <div style="padding:10px 12px;background:var(--surface);cursor:pointer" onclick="toggleModExpand('${uid}')">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="cursor:grab;color:var(--text3);font-size:16px;padding:0 2px;flex-shrink:0" onclick="event.stopPropagation()">⠿</div>
         <div class="module-icon ${m.type}" style="flex-shrink:0">${icons[m.type]||'📄'}</div>
         <input type="text" value="${m.t}" onclick="event.stopPropagation()"
-          style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0;word-break:break-word"
+          style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0"
           placeholder="Module title...">
-        <span style="font-size:12px;color:var(--text3);flex-shrink:0;padding:0 2px" id="expand-arrow-${uid}">▼</span>
+        <span style="font-size:12px;color:var(--text3);flex-shrink:0" id="expand-arrow-${uid}">▼</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;padding-left:52px" onclick="event.stopPropagation()">
         <select style="width:auto;font-size:11px" onchange="updateModBlockIcon(this)">
           <option ${m.type==='doc'?'selected':''} value="doc">📄 Document</option>
           <option ${m.type==='video'?'selected':''} value="video">▶️ Video</option>
           <option ${m.type==='quiz'?'selected':''} value="quiz">📝 Quiz</option>
-          <option ${m.type==='signoff'?'selected':''} value="signoff">✅ Sign-off</option>
         </select>
         <span class="badge ${m.status==='published'?'badge-success':'badge-gray'}" onclick="toggleModStatus(this)" style="cursor:pointer">${m.status==='published'?'Published':'Draft'}</span>
         <button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="this.closest('.mod-block').remove()">Remove</button>
       </div>
     </div>
-    <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:14px;background:var(--surface2)">
-      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px">Module Notes / Description</div>
-      <textarea rows="2" placeholder="Add notes or instructions for this module..." style="margin-bottom:12px;font-size:12px"></textarea>
-      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Attachments</div>
-      <div id="attach-list-${uid}">${attachHTML}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-        <button class="btn btn-sm" onclick="addAttach('${uid}','video')">▶️ Video</button>
-        <button class="btn btn-sm" onclick="addAttach('${uid}','file')">📎 File</button>
-        <button class="btn btn-sm" onclick="addAttach('${uid}','photo')">🖼️ Photo</button>
-        <button class="btn btn-sm" onclick="addAttach('${uid}','link')">🔗 Link</button>
+
+    <!-- Expanded content editor -->
+    <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:16px;background:var(--surface2)">
+
+      <!-- Content blocks -->
+      <div id="blocks-${uid}" style="margin-bottom:12px">${blocksHTML}</div>
+
+      <!-- Add content buttons -->
+      <div style="border:1px dashed var(--border2);border-radius:var(--radius);padding:12px;background:var(--surface)">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Add Content</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','text')">✏️ Write Text</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','video')">▶️ Embed Video</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','link')">🔗 Link / Button</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','file')">📎 Upload File</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','image')">🖼️ Image</button>
+        </div>
       </div>
     </div>
   </div>`;
 }
+
+function cmBlockHTML(uid, b, bi){
+  if(b.type==='text') return `
+    <div class="cm-block" data-type="text" style="margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--surface);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text3)">✏️ Text</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <textarea rows="5" placeholder="Write your module content here. You can include instructions, explanations, background info, and anything else you want your team to read..." style="border:none;border-radius:0;background:var(--surface);resize:vertical;font-size:13px;line-height:1.7">${b.val||''}</textarea>
+    </div>`;
+
+  if(b.type==='video') return `
+    <div class="cm-block" data-type="video" style="margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--surface);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text3)">▶️ Video</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <div style="padding:10px;background:var(--surface)">
+        <input type="text" value="${b.val||''}" placeholder="Paste a YouTube or Vimeo URL — e.g. https://youtube.com/watch?v=..." style="font-size:12px">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Supports YouTube, Vimeo, Loom, and direct video links.</div>
+      </div>
+    </div>`;
+
+  if(b.type==='link') return `
+    <div class="cm-block" data-type="link" style="margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--surface);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text3)">🔗 Link / Button</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <div style="padding:10px;background:var(--surface);display:flex;flex-direction:column;gap:8px">
+        <input type="text" value="${b.label||''}" placeholder="Button label — e.g. Fill Out Team Favorites Form" style="font-size:12px">
+        <input type="text" value="${b.val||''}" placeholder="URL — e.g. https://forms.google.com/..." style="font-size:12px">
+        <div style="font-size:11px;color:var(--text3)">This will appear as a clickable button for the learner.</div>
+      </div>
+    </div>`;
+
+  if(b.type==='file') return `
+    <div class="cm-block" data-type="file" style="margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--surface);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text3)">📎 File</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <div style="padding:10px;background:var(--surface);display:flex;flex-direction:column;gap:8px">
+        <input type="text" value="${b.label||''}" placeholder="File label — e.g. Download Onboarding Checklist" style="font-size:12px">
+        <input type="text" value="${b.val||''}" placeholder="File URL or paste a Google Drive share link" style="font-size:12px">
+        <div style="font-size:11px;color:var(--text3)">Paste a shareable link to your file (Google Drive, Dropbox, etc.)</div>
+      </div>
+    </div>`;
+
+  if(b.type==='image') return `
+    <div class="cm-block" data-type="image" style="margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--surface);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--text3)">🖼️ Image</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <div style="padding:10px;background:var(--surface)">
+        <input type="text" value="${b.val||''}" placeholder="Paste image URL — e.g. https://..." style="font-size:12px">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Paste a direct image URL or Google Drive image share link.</div>
+      </div>
+    </div>`;
+
+  return '';
+}
+
+function addModBlock(uid, type){
+  const container=document.getElementById('blocks-'+uid);
+  if(!container) return;
+  const bi=container.querySelectorAll('.cm-block').length;
+  const tmp=document.createElement('div');
+  tmp.innerHTML=cmBlockHTML(uid,{type,val:'',label:''},bi);
+  container.appendChild(tmp.firstElementChild);
+  // scroll into view
+  tmp.firstElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+
 
 function cmAddMod(courseId){
   const list=document.getElementById('cm-modList');
   if(!list) return;
   const idx=list.querySelectorAll('.mod-block').length;
   const tmp=document.createElement('div');
-  const newMod={t:'New Module',type:'doc',status:'draft',attachments:[]};
+  const newMod={t:'New Module',type:'doc',status:'draft',blocks:[]};
   tmp.innerHTML=cmModRowHTML(courseId,newMod,idx+'_new');
   list.appendChild(tmp.firstElementChild);
 }
+
 
 function toggleModStatus(badge){
   const isPub=badge.textContent.trim()==='Published';
@@ -1283,9 +1396,53 @@ function toggleModStatus(badge){
   badge.className='badge '+(isPub?'badge-gray':'badge-success');
 }
 
+
 function saveCourseChanges(id){
+  // Save modules from DOM
+  const modList=document.getElementById('cm-modList');
+  if(modList){
+    const blocks=modList.querySelectorAll('.mod-block');
+    COURSE_MODULES[id]=[...blocks].map(block=>{
+      const uid=block.dataset.uid;
+      const title=block.querySelector('input[type=text]')?.value||'Untitled Module';
+      const typeSelect=block.querySelector('select');
+      const type=typeSelect?.value||'doc';
+      const statusBadge=block.querySelector('.badge');
+      const status=statusBadge?.textContent.trim().toLowerCase()==='published'?'published':'draft';
+
+      // Read content blocks
+      const contentBlocks=[];
+      block.querySelectorAll('.cm-block').forEach(cb=>{
+        const btype=cb.dataset.type;
+        const inputs=cb.querySelectorAll('input[type=text]');
+        const textarea=cb.querySelector('textarea');
+        if(btype==='text'){
+          contentBlocks.push({type:'text',val:textarea?.value||''});
+        } else if(btype==='video'){
+          contentBlocks.push({type:'video',val:inputs[0]?.value||''});
+        } else if(btype==='link'){
+          contentBlocks.push({type:'link',label:inputs[0]?.value||'',val:inputs[1]?.value||''});
+        } else if(btype==='file'){
+          contentBlocks.push({type:'file',label:inputs[0]?.value||'',val:inputs[1]?.value||''});
+        } else if(btype==='image'){
+          contentBlocks.push({type:'image',val:inputs[0]?.value||''});
+        }
+      });
+
+      return {t:title,type,status,blocks:contentBlocks};
+    });
+
+    // Update module count on course
+    const co=COURSES.find(c=>c.id===id);
+    if(co) co.mods=COURSE_MODULES[id].length;
+  }
+
+  // Save quiz
   saveCourseQuiz(id);
-  openSOPNotifyPrompt(id);
+
+  toast('Course saved!');
+  closeModal();
+  renderContentLibrary(document.getElementById('mainContent'));
 }
 
 function renderSOPTab(id){
@@ -1426,7 +1583,7 @@ function finalSaveCourse(id){
     toast('✓ Course saved quietly. No notifications sent.');
   }
   closeModal();
-  renderCourseLibrary(document.getElementById('mainContent'));
+  renderContentLibrary(document.getElementById('mainContent'));
 }
 
 // ─── CREATE COURSE ─────────────────────────────────────────────────────────
@@ -1541,8 +1698,7 @@ function switchTab(el,id){
 }
 
 function modRowHTML(title, type, idx){
-  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
-  const colors={doc:'doc',video:'video',quiz:'quiz',signoff:'signoff'};
+  const icons={doc:'📄',video:'▶️',quiz:'📝'};
   const uid='mod_'+Date.now()+'_'+idx;
   return `<div class="mod-block" draggable="true" data-uid="${uid}"
     ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)"
@@ -1550,26 +1706,28 @@ function modRowHTML(title, type, idx){
     <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);cursor:pointer"
       onclick="toggleModExpand('${uid}')">
       <div style="cursor:grab;color:var(--text3);font-size:16px;padding:0 2px" onclick="event.stopPropagation()">⠿</div>
-      <div class="module-icon ${colors[type]||'doc'}" style="flex-shrink:0">${icons[type]||'📄'}</div>
+      <div class="module-icon doc" style="flex-shrink:0" id="icon-${uid}">${icons[type]||'📄'}</div>
       <input type="text" value="${title}" onclick="event.stopPropagation()"
         style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0">
       <select style="width:auto;font-size:12px" onclick="event.stopPropagation()" onchange="updateModBlockIcon(this)">
         <option ${type==='doc'?'selected':''} value="doc">📄 Document</option>
         <option ${type==='video'?'selected':''} value="video">▶️ Video</option>
         <option ${type==='quiz'?'selected':''} value="quiz">📝 Quiz</option>
-        <option ${type==='signoff'?'selected':''} value="signoff">✅ Sign-off</option>
       </select>
       <span style="font-size:11px;color:var(--text3);padding:0 4px" id="expand-arrow-${uid}">▼</span>
       <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();this.closest('.mod-block').remove()">Remove</button>
     </div>
-    <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:14px 14px 10px;background:var(--surface2)">
-      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px">Attachments & Content</div>
-      <div id="attach-list-${uid}"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="btn btn-sm" onclick="addAttach('${uid}','video')">▶️ Video</button>
-        <button class="btn btn-sm" onclick="addAttach('${uid}','file')">📎 File</button>
-        <button class="btn btn-sm" onclick="addAttach('${uid}','photo')">🖼️ Photo</button>
-        <button class="btn btn-sm" onclick="addAttach('${uid}','link')">🔗 Link</button>
+    <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:16px;background:var(--surface2)">
+      <div id="blocks-${uid}" style="margin-bottom:12px"></div>
+      <div style="border:1px dashed var(--border2);border-radius:var(--radius);padding:12px;background:var(--surface)">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Add Content</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','text')">✏️ Write Text</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','video')">▶️ Embed Video</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','link')">🔗 Link / Button</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','file')">📎 Upload File</button>
+          <button class="btn btn-sm" onclick="addModBlock('${uid}','image')">🖼️ Image</button>
+        </div>
       </div>
     </div>
   </div>`;
@@ -3178,18 +3336,13 @@ function openPolicyView(id){
 
 // ─── COURSE QUIZ BUILDER ───────────────────────────────────────────────────
 const COURSE_QUIZZES = {
-  1:[
-    {q:"What is the primary purpose of the Code of Conduct?",opts:["List employee benefits","Define acceptable behavior and ethical standards","Describe IT protocols","List product features"],correct:1},
-    {q:"How quickly must a data breach be reported to IT Security?",opts:["Within 24 hours","Within 1 week","Immediately","At next team meeting"],correct:2},
-    {q:"Who do you contact first if you witness workplace misconduct?",opts:["Your manager or HR","A trusted colleague","Legal team","External media"],correct:0},
-  ],
-  2:[
-    {q:"What percentage of health insurance premium does the company cover?",opts:["50%","70%","80%","100%"],correct:2},
-    {q:"When does company 401(k) match vest?",opts:["Immediately","1 year","3 years","5 years"],correct:2},
-  ],
-  7:[
-    {q:"What is The Abs Company's tagline?",opts:["Building Better Bodies","We Change Lives from the Core","Fitness for Everyone","Strength Inside Out"],correct:1},
-  ],
+  1:[{q:'[Add your question about Who We Are]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
+  2:[{q:'[Add your question about Core Values]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
+  5:[{q:'[Add your question about Your First Week]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
+  6:[{q:'[Add your question about Tools We Use]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
+  7:[{q:'[Add your question about Policies & Expectations]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
+  8:[{q:'[Add your question about Compensation & Benefits]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
+  9:[{q:'[Add your question about Your Role & Goals]',opts:['Option A','Option B','Option C','Option D'],correct:0}],
 };
 
 function cmQuizRowHTML(courseId, q, qi){
