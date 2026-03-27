@@ -1,0 +1,2952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Abs Company — Learning Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f5f4f1;--surface:#ffffff;--surface2:#f9f8f6;--border:#e8e6e1;--border2:#d4d1ca;
+    --text:#1a1916;--text2:#6b6860;--text3:#9e9b96;
+    --accent:#1a4fa0;--accent-bg:#e8f0fd;--accent-mid:#2d6be4;
+    --success:#2d6a1f;--success-bg:#e8f5e3;--success-border:#a8d99a;
+    --warn:#8a5a00;--warn-bg:#fef3dc;--warn-border:#f0c84a;
+    --danger:#8a1f1f;--danger-bg:#fdeaea;--danger-border:#f0a0a0;
+    --radius:10px;--radius-sm:6px;--radius-lg:14px;
+    --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.04);
+    --shadow-lg:0 4px 24px rgba(0,0,0,0.12),0 1px 4px rgba(0,0,0,0.06);
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+  .app{display:flex;height:100vh;overflow:hidden}
+
+  /* SIDEBAR */
+  .sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+  .logo{padding:22px 18px 16px;border-bottom:1px solid var(--border)}
+  .logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+  .logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600}
+  .logo h2{font-size:15px;font-weight:600;letter-spacing:-0.01em}
+  .logo span{font-size:11px;color:var(--text3);display:block;padding-left:40px;margin-top:-2px}
+  .role-switcher{padding:12px 14px;border-bottom:1px solid var(--border)}
+  .role-label{font-size:10px;font-weight:500;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:5px}
+  .role-switcher select{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
+  .role-switcher select:focus{border-color:var(--accent-mid)}
+  .nav-body{flex:1;padding:10px 0}
+  .nav-section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;padding:12px 18px 4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 18px;cursor:pointer;font-size:13px;color:var(--text2);border-left:2px solid transparent;transition:all 0.12s;user-select:none}
+  .nav-item:hover{background:var(--bg);color:var(--text)}
+  .nav-item.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent);font-weight:500}
+  .nav-sub{padding-left:32px;border-left:2px solid transparent}
+  .nav-sub.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent)}
+  .nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+  .nav-badge{margin-left:auto;background:var(--warn-bg);color:var(--warn);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
+  .nav-badge.red{background:var(--danger-bg);color:var(--danger)}
+  .sidebar-footer{padding:14px 16px;border-top:1px solid var(--border)}
+  .user-pill{display:flex;align-items:center;gap:10px}
+  .user-av{width:30px;height:30px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+  .user-info{flex:1;min-width:0}
+  .user-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .user-role{font-size:10px;color:var(--text3)}
+
+  /* MAIN */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .topbar-left h1{font-size:16px;font-weight:600;letter-spacing:-0.01em}
+  .topbar-left .breadcrumb{font-size:11px;color:var(--text3);margin-top:1px}
+  .topbar-right{display:flex;align-items:center;gap:10px}
+  .content{flex:1;overflow-y:auto;padding:24px}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:all 0.12s;font-family:'DM Sans',sans-serif;text-decoration:none;white-space:nowrap}
+  .btn:hover{background:var(--bg);border-color:var(--border2)}
+  .btn:active{transform:scale(0.98)}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-primary:hover{background:#163d80;border-color:#163d80}
+  .btn-success{background:var(--success-bg);color:var(--success);border-color:var(--success-border)}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-border)}
+  .btn-sm{padding:5px 10px;font-size:12px}
+  .btn-lg{padding:10px 20px;font-size:14px}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px}
+  .card-title{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text)}
+  .metric-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+  .metric-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em}
+  .metric-value{font-size:26px;font-weight:600;letter-spacing:-0.02em;line-height:1}
+  .metric-delta{font-size:11px;color:var(--text3);margin-top:4px}
+  .metric-delta.up{color:var(--success)}
+  .metric-delta.down{color:var(--danger)}
+
+  /* GRIDS */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .gap-16{gap:16px}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+  .badge-blue{background:var(--accent-bg);color:var(--accent)}
+  .badge-success{background:var(--success-bg);color:var(--success)}
+  .badge-warn{background:var(--warn-bg);color:var(--warn)}
+  .badge-danger{background:var(--danger-bg);color:var(--danger)}
+  .badge-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+
+  /* PROGRESS */
+  .progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:5px 0}
+  .progress-fill{height:100%;border-radius:3px;background:var(--accent-mid);transition:width 0.4s ease}
+  .progress-fill.green{background:#52a83a}
+  .progress-fill.amber{background:#e8a020}
+  .progress-fill.red{background:#e04040}
+
+  /* TABLE */
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:auto}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th{text-align:left;font-size:10px;font-weight:600;color:var(--text3);padding:10px 16px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.06em;background:var(--surface2);position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none}
+  td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  td:hover{white-space:normal;overflow:visible}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--bg)}
+  /* resize handle */
+  .col-resize{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;z-index:1;background:transparent}
+  .col-resize:hover,.col-resize.dragging{background:var(--accent-mid);opacity:0.5}
+  th.resizing{background:var(--accent-bg)}
+
+  /* FORM */
+  .form-group{margin-bottom:14px}
+  .form-label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+  input[type=text],input[type=email],input[type=date],select,textarea{width:100%;padding:8px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.12s}
+  input[type=text]:focus,input[type=email]:focus,select:focus,textarea:focus{border-color:var(--accent-mid);box-shadow:0 0 0 3px rgba(45,107,228,0.1)}
+  textarea{resize:vertical;min-height:70px}
+  select{cursor:pointer}
+
+  /* TABS */
+  .tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0}
+  .tab{padding:9px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all 0.12s;font-weight:400;user-select:none}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+  .tab:hover:not(.active){color:var(--text)}
+
+  /* MODULE ROWS */
+  .module-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .module-row:last-child{border-bottom:none}
+  .module-icon{width:34px;height:34px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .module-icon.video{background:#dbeafe}
+  .module-icon.quiz{background:var(--warn-bg)}
+  .module-icon.doc{background:var(--success-bg)}
+  .module-icon.signoff{background:var(--accent-bg)}
+
+  /* AVATAR */
+  .av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0}
+  .av-md{width:36px;height:36px;font-size:12px}
+  .av-sm{width:28px;height:28px;font-size:10px}
+  .av-lg{width:44px;height:44px;font-size:14px}
+
+  /* COURSE CARD */
+  .course-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all 0.15s}
+  .course-card:hover{border-color:var(--border2);box-shadow:var(--shadow);transform:translateY(-2px)}
+  .course-thumb{height:88px;display:flex;align-items:center;justify-content:center;font-size:32px}
+  .course-body{padding:12px 14px}
+  .course-title{font-size:13px;font-weight:600;margin-bottom:5px}
+  .course-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+  /* CHECK CIRCLE */
+  .check-c{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:var(--text3)}
+  .check-c.done{background:var(--success-bg);border-color:var(--success-border);color:var(--success);font-weight:700}
+  .check-c.locked{opacity:0.4}
+
+  /* QUIZ */
+  .quiz-opt{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--border2);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:all 0.12s;font-size:13px}
+  .quiz-opt:hover{border-color:var(--accent-mid);background:var(--accent-bg)}
+  .quiz-opt.selected{border-color:var(--accent);background:var(--accent-bg)}
+  .quiz-opt.correct{border-color:var(--success-border);background:var(--success-bg);color:var(--success)}
+  .quiz-opt.wrong{border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger)}
+  .quiz-letter{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+
+  /* VIDEO */
+  .video-player{background:#0f1729;border-radius:var(--radius-lg);aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer}
+  .vid-overlay{text-align:center;color:#fff;z-index:1}
+  .vid-play{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 10px;border:2px solid rgba(255,255,255,0.3);transition:all 0.15s}
+  .vid-play:hover{background:rgba(255,255,255,0.25);transform:scale(1.05)}
+  .vid-controls{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.75));padding:20px 14px 12px;display:flex;align-items:center;gap:10px}
+  .vid-prog{flex:1;height:3px;background:rgba(255,255,255,0.25);border-radius:2px;cursor:pointer}
+  .vid-fill{height:100%;background:#fff;border-radius:2px;width:35%;transition:width 0.5s}
+
+  /* NOTIFICATION */
+  #notif{display:none;position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-size:13px;z-index:300;box-shadow:var(--shadow-lg);max-width:300px;animation:slideIn 0.2s ease}
+  @keyframes slideIn{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .notif-ok{border-left:3px solid var(--success)}
+
+  /* MODAL */
+  #modalBg{display:none;position:fixed;inset:0;background:rgba(10,10,20,0.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+  #modalBg.open{display:flex}
+  .modal{background:var(--surface);border-radius:var(--radius-lg);padding:24px;max-width:560px;width:92%;border:1px solid var(--border);max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);transition:max-width 0.25s ease,max-height 0.25s ease}
+  .modal.expanded{max-width:96vw;width:96vw;max-height:94vh;border-radius:var(--radius-lg)}
+  .expand-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);transition:all 0.12s;white-space:nowrap}
+  .expand-btn:hover{background:var(--bg);color:var(--text)}
+  /* fix module title wrapping */
+  .mod-block input[type=text]{white-space:normal;overflow:visible;text-overflow:unset;word-break:break-word}
+
+  /* SIGNOFF BOX */
+  .signoff-box{background:var(--accent-bg);border:1px solid #b5d4f4;border-radius:var(--radius-lg);padding:16px 18px}
+
+  /* LEARNER ROW */
+  .learner-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .learner-row:last-child{border-bottom:none}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:48px 20px;color:var(--text3)}
+  .empty .empty-icon{font-size:36px;margin-bottom:10px}
+  .empty .empty-title{font-size:14px;font-weight:500;color:var(--text2);margin-bottom:4px}
+
+  /* SEARCH BAR */
+  .search-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+  .search-input{position:relative;flex:1;min-width:180px}
+  .search-input input{padding-left:32px}
+  .search-input::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+
+  /* CALLOUT */
+  .callout{border-radius:var(--radius);padding:12px 14px;font-size:13px;margin-bottom:14px;border:1px solid}
+  .callout-blue{background:var(--accent-bg);border-color:#b5d4f4;color:var(--accent)}
+  .callout-success{background:var(--success-bg);border-color:var(--success-border);color:var(--success)}
+  .callout-warn{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn)}
+
+  /* SECTION DIVIDER */
+  .section-gap{margin-bottom:18px}
+  .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+  input[type=checkbox]{width:auto;accent-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div id="notif"></div>
+<div id="modalBg"><div id="modalContent" class="modal"></div></div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon">AC</div>
+        <h2>The Abs Company</h2>
+      </div>
+      <span>Learning Management System</span>
+    </div>
+    <div class="role-switcher">
+      <div class="role-label">Viewing as</div>
+      <select id="roleSelect" onchange="switchRole(this.value)">
+        <option value="admin">Admin / HR</option>
+        <option value="manager">Manager</option>
+        <option value="learner">New Hire / Learner</option>
+        <option value="executive">Executive</option>
+      </select>
+    </div>
+    <nav class="nav-body" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="av user-av av-sm" id="sidebarAv">EG</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarName">Eleni Gagnon</div>
+          <div class="user-role" id="sidebarRole">HR Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="breadcrumb" id="pageCrumb">Home / Dashboard</div>
+      </div>
+      <div class="topbar-right" id="topbarRight"></div>
+    </div>
+    <div class="content" id="mainContent"></div>
+  </div>
+</div>
+
+<script>
+const S = {
+  role:'admin', page:'dashboard',
+  quiz:{q:0,sel:null,answered:false,score:0,done:false},
+  videoWatched:false,
+  progress:35,
+  signedOff:false,
+  activeCourseId:7,
+  courseDrafts:{}
+};
+
+const USERS = {
+  admin:{name:'Eleni Gagnon',initials:'EG',role:'HR Administrator',avBg:'#dbeafe',avCol:'#1a4fa0'},
+  manager:{name:'Sam Rivera',initials:'SR',role:'Team Manager',avBg:'#e8f5e3',avCol:'#2d6a1f'},
+  learner:{name:'Alex Chen',initials:'AC',role:'New Hire — Week 1',avBg:'#fef3dc',avCol:'#8a5a00'},
+  executive:{name:'Morgan Lee',initials:'ML',role:'VP Operations',avBg:'#fdeaea',avCol:'#8a1f1f'},
+};
+
+const COURSES = [
+  {id:7,emoji:'🏢',title:'The Abs Company — Who We Are',cat:'The Abs Company - Who We Are',color:'#dbeafe',mods:4,dur:'30 minutes',enrolled:12,completed:5},
+  {id:1,emoji:'⚖️',title:'Compliance & Ethics',cat:'Legal & Compliance',color:'#e8f0fd',mods:5,dur:'45 minutes',enrolled:12,completed:7},
+  {id:2,emoji:'🔒',title:'Security Fundamentals',cat:'IT & Security',color:'#fef3dc',mods:4,dur:'30 minutes',enrolled:12,completed:9},
+  {id:3,emoji:'📋',title:'HR Policies & Benefits',cat:'Human Resources',color:'#e8f5e3',mods:6,dur:'60 minutes',enrolled:12,completed:4},
+  {id:4,emoji:'💡',title:'Product Knowledge 101',cat:'Product',color:'#f0edfe',mods:8,dur:'60 minutes',enrolled:8,completed:2},
+  {id:5,emoji:'🎯',title:'Leadership Foundations',cat:'Management',color:'#fdeaea',mods:5,dur:'45 minutes',enrolled:5,completed:1},
+  {id:6,emoji:'🤝',title:'Customer Success Playbook',cat:'Sales & CS',color:'#e1f5ee',mods:7,dur:'60 minutes',enrolled:10,completed:6},
+];
+
+const LEARNERS = [
+  {name:'Alex Chen',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',dept:'Sales',title:'Sales Associate',email:'alex.chen@theabscompany.com',manager:'Sam Rivera',start:'Mar 10, 2026',prog:35,overdue:1,status:'in-progress',account:'active'},
+  {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',dept:'Marketing',title:'Marketing Manager',email:'priya.patel@theabscompany.com',manager:'Sam Rivera',start:'Mar 3, 2026',prog:80,overdue:0,status:'in-progress',account:'active'},
+  {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',dept:'Sales',title:'Sales Representative',email:'marcus.webb@theabscompany.com',manager:'Eleni Gagnon',start:'Feb 17, 2026',prog:100,overdue:0,status:'complete',account:'active'},
+  {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',dept:'Marketing',title:'Marketing Coordinator',email:'sofia.marin@theabscompany.com',manager:'Sam Rivera',start:'Mar 17, 2026',prog:15,overdue:2,status:'in-progress',account:'active'},
+  {name:'James Okafor',ini:'JO',bg:'#fdeaea',tc:'#8a1f1f',dept:'Finance',title:'Finance Analyst',email:'james.okafor@theabscompany.com',manager:'Morgan Lee',start:'Feb 24, 2026',prog:60,overdue:0,status:'in-progress',account:'active'},
+  {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',dept:'Operations',title:'Operations Analyst',email:'lei.zhang@theabscompany.com',manager:'Morgan Lee',start:'Mar 3, 2026',prog:45,overdue:1,status:'in-progress',account:'active'},
+  {name:'Dana Reyes',ini:'DR',bg:'#fdeaea',tc:'#8a1f1f',dept:'Human Resources',title:'HR Coordinator',email:'dana.reyes@theabscompany.com',manager:'Eleni Gagnon',start:'Jan 15, 2026',prog:0,overdue:0,status:'not-started',account:'inactive'},
+];
+
+const QUIZ = [
+  {q:"What is the primary purpose of the company's Code of Conduct?",
+   opts:["To outline employee benefits","To define acceptable behavior and ethical standards","To describe IT security protocols","To list product features"],correct:1},
+  {q:"How quickly must a potential data breach be reported to IT Security?",
+   opts:["Within 24 hours","Within 1 week","Immediately upon discovery","At the next team meeting"],correct:2},
+  {q:"Which of the following is a valid use of company resources?",
+   opts:["Running a personal side business","Sharing login credentials with a colleague","Using work devices for approved job tasks","Downloading unlicensed software"],correct:2},
+  {q:"Who should you contact first if you witness workplace misconduct?",
+   opts:["Your direct manager or HR","A colleague you trust","Company legal team","External media"],correct:0},
+];
+
+const CATS = [
+  {name:'The Abs Company - Who We Are', desc:'Our mission, values, culture, history, and what makes us unique.'},
+  {name:'Legal & Compliance', desc:'Workplace conduct, ethics, regulatory requirements, and company policies.'},
+  {name:'IT & Security', desc:'Data protection, cybersecurity practices, and responsible use of technology.'},
+  {name:'Human Resources', desc:'Benefits, PTO, performance reviews, and employee support resources.'},
+  {name:'Product', desc:'Deep dives into our products, features, roadmap, and customer use cases.'},
+  {name:'Management', desc:'Leadership skills, team development, and people management fundamentals.'},
+  {name:'Sales & CS', desc:'Sales playbooks, customer success strategies, and client communication.'},
+];
+
+const NAV = {
+  admin:[
+    {icon:'📊',label:'Dashboard',page:'dashboard'},
+    {icon:'📚',label:'Course Library',page:'courses'},
+    {icon:'➕',label:'Create Course',page:'create',sub:true},
+    {icon:'📖',label:'Playbook',page:'playbook'},
+    {icon:'➕',label:'Add Subject',page:'playbook-create',sub:true},
+    {icon:'👤',label:'People',page:'people'},
+    {icon:'✅',label:'Sign-Offs',page:'signoffs',badge:'6',badgeRed:false},
+    {icon:'📈',label:'Reports',page:'reports'},
+  ],
+  manager:[
+    {icon:'📊',label:'Dashboard',page:'dashboard'},
+    {icon:'📖',label:'Playbook',page:'playbook'},
+    {icon:'👤',label:'My Team',page:'people'},
+    {icon:'✅',label:'Pending Sign-Offs',page:'signoffs',badge:'3',badgeRed:false},
+    {icon:'📈',label:'Team Reports',page:'reports'},
+  ],
+  learner:[
+    {icon:'🏠',label:'My Dashboard',page:'dashboard'},
+    {icon:'📚',label:'My Courses',page:'my-courses'},
+    {icon:'▶️',label:'Continue Learning',page:'course-detail'},
+    {icon:'📖',label:'Policies & Processes',page:'playbook'},
+    {icon:'🏆',label:'Completed',page:'completed'},
+  ],
+  executive:[
+    {icon:'📊',label:'Overview',page:'dashboard'},
+    {icon:'📈',label:'Reports',page:'reports'},
+    {icon:'👥',label:'Team Roster',page:'learners'},
+  ]
+};
+
+function switchRole(role){
+  S.role=role;
+  const u=USERS[role];
+  document.getElementById('sidebarAv').textContent=u.initials;
+  document.getElementById('sidebarAv').style.background=u.avBg;
+  document.getElementById('sidebarAv').style.color=u.avCol;
+  document.getElementById('sidebarName').textContent=u.name;
+  document.getElementById('sidebarRole').textContent=u.role;
+  renderNav();
+  go('dashboard');
+}
+
+function renderNav(){
+  const el=document.getElementById('sidebarNav');
+  const items=NAV[S.role];
+  // track collapsed state
+  if(S.navCollapsed===undefined) S.navCollapsed={};
+
+  el.innerHTML=items.map(n=>{
+    if(n.sub){
+      // find if parent is collapsed
+      const parentPage=items[items.indexOf(n)-1]?.page;
+      if(S.navCollapsed[parentPage]) return '';
+      return `<div class="nav-item nav-sub${S.page===n.page?' active':''}" onclick="go('${n.page}')">
+        <span style="width:18px;flex-shrink:0"></span>
+        <span style="font-size:12px;color:inherit">${n.label}</span>
+        ${n.badge?`<span class="nav-badge${n.badgeRed?' red':''}">${n.badge}</span>`:''}
+      </div>`;
+    }
+    // check if this item has sub-children
+    const hasSubs=items[items.indexOf(n)+1]?.sub;
+    const isCollapsed=S.navCollapsed[n.page];
+    return `<div class="nav-item${S.page===n.page?' active':''}" onclick="${hasSubs?`toggleNavGroup('${n.page}');`:``}go('${n.page}')">
+      <span class="nav-icon">${n.icon}</span>
+      <span style="flex:1">${n.label}</span>
+      ${hasSubs?`<span style="font-size:10px;color:var(--text3);transition:transform 0.2s;display:inline-block;transform:rotate(${isCollapsed?'0':'90'}deg)">▶</span>`:''}
+      ${n.badge?`<span class="nav-badge${n.badgeRed?' red':''}">${n.badge}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+function toggleNavGroup(page){
+  if(S.navCollapsed===undefined) S.navCollapsed={};
+  S.navCollapsed[page]=!S.navCollapsed[page];
+  renderNav();
+}
+
+function go(page){
+  S.page=page;
+  renderNav();
+  const titles={
+    dashboard:'Dashboard',courses:'Course Library',create:'Create Course',
+    people:S.role==='manager'?'My Team':'People',
+    policies:'Policies & Processes',
+    playbook:S.role==='learner'?'Policies & Processes':'Playbook',
+    'playbook-create':'Add Subject',
+    signoffs:'Sign-Offs',reports:'Reports & Analytics',
+    'my-courses':'My Courses','course-detail':'Continue Learning',completed:'Completed Courses'
+  };
+  document.getElementById('pageTitle').textContent=titles[page]||page;
+  document.getElementById('pageCrumb').textContent='Home / '+(titles[page]||page);
+  document.getElementById('topbarRight').innerHTML='';
+  const c=document.getElementById('mainContent');
+  ({
+    dashboard:()=>renderDashboard(c),
+    courses:()=>renderCourseLibrary(c),
+    create:()=>renderCreate(c),
+    people:()=>renderPeople(c),
+    learners:()=>renderPeople(c),
+    users:()=>renderPeople(c),
+    policies:()=>renderPolicies(c),
+    playbook:()=>renderPlaybook(c),
+    'playbook-create':()=>renderPlaybookCreate(c),
+    signoffs:()=>renderSignoffs(c),
+    reports:()=>renderReports(c),
+    'my-courses':()=>renderMyCourses(c),
+    'course-detail':()=>renderCourseDetail(c),
+    completed:()=>renderCompleted(c),
+  }[page]||function(){c.innerHTML=`<div class="empty"><div class="empty-icon">🚧</div><div class="empty-title">Coming Soon</div></div>`})();
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────────────────────
+function renderDashboard(c){
+  if(S.role==='learner'){
+    c.innerHTML=`
+    <div class="grid4 section-gap">
+      <div class="metric-card"><div class="metric-label">Assigned</div><div class="metric-value">4</div></div>
+      <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value">1</div></div>
+      <div class="metric-card"><div class="metric-label">Progress</div><div class="metric-value">${S.progress}%</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:var(--danger)">1</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">My Active Courses</div>
+        ${COURSES.slice(0,3).map((co,i)=>{
+          const pcts=[S.progress,80,20];
+          return `<div class="module-row" onclick="openLearnerCourse(${co.id})" style="cursor:pointer">
+            <div class="module-icon" style="background:${co.color};font-size:18px">${co.emoji}</div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">${co.title}</div>
+              <div class="progress-bar"><div class="progress-fill${pcts[i]>70?' green':''}" style="width:${pcts[i]}%"></div></div>
+              <div style="font-size:11px;color:var(--text3)">${pcts[i]}% · Due ${co.due}</div>
+            </div>
+            <span class="badge ${pcts[i]===100?'badge-success':pcts[i]>60?'badge-blue':pcts[i]>0?'badge-warn':'badge-gray'}">${pcts[i]===100?'Done':pcts[i]>0?'Active':'Start'}</span>
+          </div>`;
+        }).join('')}
+        <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="openLearnerCourse(${COURSES[0].id})">▶ Continue Learning</button>
+      </div>
+      <div>
+        <div class="card section-gap">
+          <div class="card-title">Upcoming Deadlines</div>
+          ${COURSES.slice(0,3).map((co,i)=>`
+          <div class="learner-row">
+            <div style="font-size:20px">${co.emoji}</div>
+            <div style="flex:1"><div style="font-size:13px">${co.title}</div><div style="font-size:11px;color:var(--text3)">${co.cat}</div></div>
+            <span class="badge ${i===1?'badge-danger':'badge-warn'}">Due ${co.due}</span>
+          </div>`).join('')}
+        </div>
+        ${S.signedOff?`
+        <div class="callout callout-success">✓ <strong>Security Fundamentals</strong> — signed off by Sam Rivera on Mar 26.</div>`:`
+        <div class="callout callout-blue">⏳ Manager sign-off pending for <strong>Compliance & Ethics</strong></div>`}
+      </div>
+    </div>`;
+  } else if(S.role==='executive'){
+    c.innerHTML=`
+    <div class="grid4 section-gap">
+      <div class="metric-card"><div class="metric-label">Total Learners</div><div class="metric-value">47</div><div class="metric-delta up">↑ 5 this month</div></div>
+      <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value">68%</div><div class="metric-delta up">↑ 12% vs last month</div></div>
+      <div class="metric-card"><div class="metric-label">Active Courses</div><div class="metric-value">6</div><div class="metric-delta">2 categories</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue Learners</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Needs attention</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Completion by Course</div>
+      ${COURSES.map(co=>{
+        const pct=Math.round(co.completed/co.enrolled*100);
+        return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:13px">
+          <div style="font-size:20px;width:28px;text-align:center">${co.emoji}</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+              <span style="font-weight:500">${co.title}</span>
+              <span style="color:var(--text2)">${co.completed}/${co.enrolled} (${pct}%)</span>
+            </div>
+            <div class="progress-bar" style="margin:0"><div class="progress-fill ${pct>70?'green':pct>40?'':'amber'}" style="width:${pct}%"></div></div>
+          </div>
+          <span class="badge ${pct>=80?'badge-success':pct>=50?'badge-blue':'badge-warn'}">${pct}%</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } else {
+    c.innerHTML=`
+    <div class="grid4 section-gap">
+      <div class="metric-card"><div class="metric-label">Active Learners</div><div class="metric-value">47</div><div class="metric-delta up">↑ 5 this month</div></div>
+      <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value">68%</div><div class="metric-delta up">↑ 12% vs last</div></div>
+      <div class="metric-card"><div class="metric-label">Pending Sign-Offs</div><div class="metric-value" style="color:var(--warn)">6</div><div class="metric-delta">Awaiting review</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Need follow-up</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Team Progress</div>
+        ${(() => {
+          const depts = ['Finance','Human Resources','Marketing','Operations','Sales'];
+          return depts.map(dept => {
+            const members = LEARNERS.filter(l => l.dept === dept);
+            if(!members.length) return '';
+            const avgProg = Math.round(members.reduce((s,l)=>s+l.prog,0)/members.length);
+            return `
+            <div style="margin-bottom:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px">
+                <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">${dept}</span>
+                <span style="font-size:11px;color:var(--text2)">${members.length} member${members.length>1?'s':''} · avg ${avgProg}%</span>
+              </div>
+              ${members.map(l=>`
+              <div class="learner-row" style="padding:7px 0">
+                <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+                <div style="flex:1">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+                    <span style="font-size:13px;font-weight:500">${l.name}</span>
+                    <span style="font-size:11px;color:var(--text3)">${l.prog}%</span>
+                  </div>
+                  <div class="progress-bar" style="margin:0 0 2px"><div class="progress-fill ${l.prog===100?'green':l.prog>60?'':'amber'}" style="width:${l.prog}%"></div></div>
+                  ${l.overdue>0?`<div style="font-size:10px;color:var(--danger)">${l.overdue} overdue</div>`:''}
+                </div>
+                <span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':'badge-warn'}">${l.status==='complete'?'Done':l.overdue>0?'Overdue':'Active'}</span>
+              </div>`).join('')}
+            </div>`;
+          }).join('');
+        })()}
+      </div>
+      <div class="card">
+        <div class="card-title">Course Overview</div>
+        ${COURSES.map(co=>{
+          const pct=Math.round(co.completed/co.enrolled*100);
+          return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+            <div style="font-size:18px">${co.emoji}</div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;margin-bottom:3px">${co.title}</div>
+              <div class="progress-bar" style="margin:0"><div class="progress-fill green" style="width:${pct}%"></div></div>
+            </div>
+            <span style="font-size:11px;color:var(--text2)">${co.completed}/${co.enrolled}</span>
+          </div>`;
+        }).join('')}
+        <button class="btn btn-sm" style="width:100%;margin-top:8px" onclick="go('reports')">View Full Reports →</button>
+      </div>
+    </div>`;
+  }
+}
+
+// track course order per category
+const CAT_ORDER = {};
+CATS.forEach(cat=>{
+  CAT_ORDER[cat.name] = COURSES.filter(co=>co.cat===cat.name).map(co=>co.id);
+});
+
+function renderCourseLibrary(c){
+  const tr=document.getElementById('topbarRight');
+  tr.innerHTML=`<button class="btn btn-primary btn-sm" onclick="go('create')">+ New Course</button>`;
+  c.innerHTML=`
+  <div class="search-bar">
+    <div class="search-input" style="max-width:280px"><input type="text" placeholder="Search courses..." oninput="filterCourses(this.value)"></div>
+    <select style="width:auto" id="catSelect" onchange="filterCourses('',this.value)">
+      <option value="">All Categories</option>
+      ${CATS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}
+    </select>
+  </div>
+  <div id="catView">
+    ${CATS.map(cat=>{
+      const catCourses=getOrderedCourses(cat.name);
+      return `<div class="cat-section" data-cat="${cat.name}" style="margin-bottom:28px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <div style="font-size:14px;font-weight:600">${cat.name}</div>
+            <div style="font-size:12px;color:var(--text3)">${catCourses.length} course${catCourses.length!==1?'s':''}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="openAddCourseToCat('${cat.name.replace(/'/g,"\\'")}')">+ Add Course</button>
+            <button class="btn btn-sm" onclick="openReorderModal('${cat.name.replace(/'/g,"\\'")}')">⇅ Reorder</button>
+            <button class="btn btn-sm" onclick="openAssignModal('${cat.name.replace(/'/g,"\\'")}')">👥 Assign</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">${cat.desc}</div>
+        ${catCourses.length?`<div class="grid3" id="catgrid-${cat.name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}">${catCourses.map(co=>courseCardHTML(co)).join('')}</div>`
+        :`<div style="padding:20px;background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--radius-lg);text-align:center;color:var(--text3);font-size:13px">
+            No courses yet — <span style="color:var(--accent);cursor:pointer;font-weight:500" onclick="openAddCourseToCat('${cat.name.replace(/'/g,"\\'")}')">add one</span>
+          </div>`}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function getOrderedCourses(catName){
+  const order=CAT_ORDER[catName]||[];
+  const catCourses=COURSES.filter(co=>co.cat===catName);
+  if(!order.length) return catCourses;
+  return [...catCourses].sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+}
+
+function openAddCourseToCat(catName){
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:17px;font-weight:600">Add Course</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">Category: ${catName}</div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Course Title</label><input type="text" id="newCourseTitle" placeholder="e.g. Brand Story & History"></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="newCourseDesc" rows="2" placeholder="What will learners gain?"></textarea></div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Duration</label>
+        <select id="newCourseDur">
+          <option>5 minutes</option><option>10 minutes</option><option selected>30 minutes</option><option>45 minutes</option><option>60 minutes</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Course Icon</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['📚','⚖️','🔒','📋','💡','🎯','🤝','🛡️','📊','🏆','🧪','🌐','🏢','👋','🎓'].map(e=>`
+          <button class="btn" style="font-size:16px;padding:4px 8px" onclick="selectNewEmoji(this,'${e}')">${e}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Requires manager sign-off?</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" checked> Yes</label>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveNewCourse('${catName.replace(/'/g,"\\'")}')">Add Course</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+let _selectedEmoji='📚';
+function selectNewEmoji(btn, emoji){
+  _selectedEmoji=emoji;
+  btn.closest('div').querySelectorAll('.btn').forEach(b=>b.style.background='');
+  btn.style.background='var(--accent-bg)';
+}
+
+function saveNewCourse(catName){
+  const title=document.getElementById('newCourseTitle')?.value.trim();
+  if(!title){toast('Please enter a course title.');return;}
+  const dur=document.getElementById('newCourseDur')?.value||'30 minutes';
+  const newId=Date.now();
+  const colors=['#dbeafe','#e8f0fd','#fef3dc','#e8f5e3','#f0edfe','#fdeaea','#e1f5ee'];
+  const color=colors[COURSES.length%colors.length];
+  COURSES.push({id:newId,emoji:_selectedEmoji,title,cat:catName,color,mods:1,dur,enrolled:0,completed:0});
+  if(!CAT_ORDER[catName]) CAT_ORDER[catName]=[];
+  CAT_ORDER[catName].push(newId);
+  toast(`"${title}" added to ${catName}!`);
+  closeModal();
+  renderCourseLibrary(document.getElementById('mainContent'));
+}
+
+function openReorderModal(catName){
+  const courses=getOrderedCourses(catName);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:17px;font-weight:600">Reorder Courses</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${catName}</div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Drag the rows to set the order learners will see them.</div>
+    <div id="reorderList">
+      ${courses.map((co,i)=>`
+      <div class="module-row" draggable="true" data-id="${co.id}"
+        ondragstart="roDragStart(event)" ondragover="roDragOver(event)" ondrop="roDrop(event,'${catName.replace(/'/g,"\\'")}')">
+        <div style="cursor:grab;color:var(--text3);font-size:18px;padding:0 6px;user-select:none">⠿</div>
+        <div style="width:28px;height:28px;border-radius:6px;background:${co.color};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${co.emoji}</div>
+        <div style="flex:1;font-size:13px;font-weight:500">${co.title}</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" onclick="roMove(${i},-1,'${catName.replace(/'/g,"\\'")}')">↑</button>
+          <button class="btn btn-sm" onclick="roMove(${i},1,'${catName.replace(/'/g,"\\'")}')">↓</button>
+        </div>
+      </div>`).join('')}
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="toast('Order saved!');closeModal();renderCourseLibrary(document.getElementById('mainContent'))">Save Order</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+let _roDragId=null;
+function roDragStart(e){_roDragId=e.currentTarget.dataset.id;}
+function roDragOver(e){e.preventDefault();e.currentTarget.style.background='var(--accent-bg)';}
+function roDrop(e,catName){
+  e.preventDefault();
+  e.currentTarget.style.background='';
+  const toId=parseInt(e.currentTarget.dataset.id);
+  const fromId=parseInt(_roDragId);
+  if(fromId===toId) return;
+  const order=CAT_ORDER[catName];
+  const fi=order.indexOf(fromId), ti=order.indexOf(toId);
+  if(fi<0||ti<0) return;
+  order.splice(fi,1); order.splice(ti,0,fromId);
+  openReorderModal(catName);
+}
+function roMove(idx,dir,catName){
+  const order=CAT_ORDER[catName];
+  const ni=idx+dir;
+  if(ni<0||ni>=order.length) return;
+  [order[idx],order[ni]]=[order[ni],order[idx]];
+  openReorderModal(catName);
+}
+
+function openAssignModal(catName){
+  const courses=getOrderedCourses(catName);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:17px;font-weight:600">Assign Courses</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${catName}</div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px">Select courses to assign:</div>
+    ${courses.map(co=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer">
+      <input type="checkbox" checked>
+      <div style="width:28px;height:28px;border-radius:6px;background:${co.color};display:flex;align-items:center;justify-content:center;font-size:14px">${co.emoji}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${co.title}</div><div style="font-size:11px;color:var(--text3)">${co.dur}</div></div>
+    </label>`).join('')}
+    <div style="font-size:13px;font-weight:500;margin:16px 0 10px">Assign to team members:</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="toggleAllAssign(true)">Select All</button>
+      <button class="btn btn-sm" onclick="toggleAllAssign(false)">Deselect All</button>
+    </div>
+    <div id="assignLearnerList">
+      ${LEARNERS.map(l=>`
+      <label class="assign-learner-row" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <input type="checkbox" class="assign-cb" checked>
+        <div class="av av-sm" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${l.name}</div><div style="font-size:11px;color:var(--text3)">${l.title} · ${l.dept}</div></div>
+        <div>
+          <label style="font-size:11px;color:var(--text3);margin-bottom:2px;display:block">Due date</label>
+          <input type="date" style="font-size:11px;padding:3px 6px;width:130px">
+        </div>
+      </label>`).join('')}
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveAssignments('${catName.replace(/'/g,"\\'")}')">Save Assignments</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function toggleAllAssign(checked){
+  document.querySelectorAll('.assign-cb').forEach(cb=>cb.checked=checked);
+}
+
+function saveAssignments(catName){
+  const checked=document.querySelectorAll('.assign-cb:checked').length;
+  toast(`Courses assigned to ${checked} team member${checked!==1?'s':''}!`);
+  closeModal();
+}
+
+
+
+function filterCourses(search='', cat=''){
+  const s=(search||'').toLowerCase();
+  const selCat=cat||document.getElementById('catSelect')?.value||'';
+  const sections=document.querySelectorAll('.cat-section');
+  sections.forEach(sec=>{
+    const secCat=sec.dataset.cat;
+    if(selCat && secCat!==selCat){sec.style.display='none';return;}
+    const cards=sec.querySelectorAll('.course-card');
+    let anyVisible=false;
+    cards.forEach(card=>{
+      const title=card.querySelector('.course-title')?.textContent.toLowerCase()||'';
+      const show=!s||title.includes(s)||secCat.toLowerCase().includes(s);
+      card.style.display=show?'':'none';
+      if(show) anyVisible=true;
+    });
+    sec.style.display=anyVisible?'':'none';
+  });
+}
+
+function courseCardHTML(co){
+  const pct=Math.round(co.completed/co.enrolled*100);
+  return `<div class="course-card" onclick="openCourseModal(${co.id})">
+    <div class="course-thumb" style="background:${co.color}">${co.emoji}</div>
+    <div class="course-body">
+      <div class="course-title">${co.title}</div>
+      <div class="course-meta">
+        <span class="badge badge-gray">${co.cat}</span>
+        <span style="font-size:11px;color:var(--text3)">${co.mods} modules · ${co.dur}</span>
+      </div>
+      <div class="progress-bar" style="margin-top:8px"><div class="progress-fill green" style="width:${pct}%"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">${co.completed}/${co.enrolled} completed · ${co.dur}</div>
+    </div>
+  </div>`;
+}
+
+// SOP update history per course id
+const SOP_UPDATES = {
+  1:[{date:'Mar 15, 2026',note:'Updated section 3 — new harassment policy language.',by:'Eleni Gagnon',due:'Mar 22',completions:[
+    {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',done:true,doneDate:'Mar 18'},
+    {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',done:true,doneDate:'Mar 20'},
+    {name:'Alex Chen',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',done:false,doneDate:null},
+    {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',done:false,doneDate:null},
+    {name:'James Okafor',ini:'JO',bg:'#fdeaea',tc:'#8a1f1f',done:true,doneDate:'Mar 21'},
+    {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',done:false,doneDate:null},
+  ]}],
+};
+
+const COURSE_MODULES = {
+  1:[
+    {t:'Introduction & Overview',type:'doc',status:'published',attachments:[{kind:'link',val:'https://company.com/ethics-intro'}]},
+    {t:'Core Training Video',type:'video',status:'published',attachments:[{kind:'video',val:'https://youtube.com/watch?v=example'}]},
+    {t:'Knowledge Assessment Quiz',type:'quiz',status:'published',attachments:[]},
+    {t:'Case Studies & Scenarios',type:'doc',status:'draft',attachments:[{kind:'file',val:'CaseStudies_2026.pdf'}]},
+    {t:'Final Sign-Off Checklist',type:'signoff',status:'draft',attachments:[]},
+  ],
+};
+
+function openCourseModal(id){
+  const co=COURSES.find(c=>c.id===id);
+  if(!COURSE_MODULES[id]) COURSE_MODULES[id]=[
+    {t:'Introduction & Overview',type:'doc',status:'published',attachments:[]},
+    {t:'Core Training Video',type:'video',status:'published',attachments:[]},
+    {t:'Knowledge Assessment Quiz',type:'quiz',status:'draft',attachments:[]},
+  ];
+  if(!SOP_UPDATES[id]) SOP_UPDATES[id]=[];
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:32px">${co.emoji}</div>
+        <div>
+          <div style="font-size:17px;font-weight:600">${co.title}</div>
+          <span class="badge badge-blue">${co.cat}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+        <button class="expand-btn" id="modalExpandBtn" onclick="toggleModalExpand(this)">⤢ Expand</button>
+        <button class="btn btn-sm" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="grid2 section-gap" style="margin-bottom:16px">
+      <div class="metric-card"><div class="metric-label">Enrolled</div><div class="metric-value">${co.enrolled}</div></div>
+      <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value">${co.completed}</div></div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab(this,'cm-info')">Course Info</div>
+      <div class="tab" onclick="switchTab(this,'cm-mods')">Modules</div>
+      <div class="tab" onclick="switchTab(this,'cm-sop')">SOP Updates <span class="badge badge-warn" style="margin-left:4px">${SOP_UPDATES[id].length}</span></div>
+    </div>
+
+    <div id="cm-info">
+      <div class="form-group"><label class="form-label">Course Title</label><input type="text" value="${co.title}"></div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Category</label>
+          <select>${CATS.map(c=>`<option${c.name===co.cat?' selected':''}>${c.name}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label class="form-label">Duration</label>
+          <select>
+            ${['5 minutes','10 minutes','30 minutes','45 minutes','60 minutes'].map(d=>`<option${d===co.dur?' selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Requires manager sign-off?</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" checked> Yes</label>
+      </div>
+    </div>
+
+    <div id="cm-mods" style="display:none">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Drag ⠿ to reorder. Click a module to expand and edit content.</div>
+      <div id="cm-modList">
+        ${COURSE_MODULES[id].map((m,i)=>cmModRowHTML(id,m,i)).join('')}
+      </div>
+      <button class="btn" style="margin-top:10px" onclick="cmAddMod(${id})">+ Add Module</button>
+    </div>
+
+    <div id="cm-sop" style="display:none">
+      ${renderSOPTab(id)}
+    </div>
+
+    <hr class="divider">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="saveCourseChanges(${id})">Save Changes</button>
+      <button class="btn" onclick="toast('Course duplicated!')">Duplicate</button>
+      <button class="btn btn-danger" onclick="toast('Course archived.');closeModal()">Archive</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function cmModRowHTML(courseId, m, i){
+  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+  const uid='cm_'+courseId+'_'+i;
+  const attachHTML=m.attachments.map(a=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px">
+      <span style="font-size:14px">${{video:'▶️',file:'📎',photo:'🖼️',link:'🔗'}[a.kind]||'📎'}</span>
+      <input type="text" value="${a.val}" style="flex:1;font-size:12px;padding:4px 8px">
+      <button class="btn btn-sm btn-danger" onclick="this.closest('div').remove()">✕</button>
+    </div>`).join('');
+  return `<div class="mod-block" draggable="true" data-uid="${uid}"
+    ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)"
+    style="border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden">
+    <div style="padding:10px 12px;background:var(--surface);cursor:pointer" onclick="toggleModExpand('${uid}')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="cursor:grab;color:var(--text3);font-size:16px;padding:0 2px;flex-shrink:0" onclick="event.stopPropagation()">⠿</div>
+        <div class="module-icon ${m.type}" style="flex-shrink:0">${icons[m.type]||'📄'}</div>
+        <input type="text" value="${m.t}" onclick="event.stopPropagation()"
+          style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0;word-break:break-word"
+          placeholder="Module title...">
+        <span style="font-size:12px;color:var(--text3);flex-shrink:0;padding:0 2px" id="expand-arrow-${uid}">▼</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding-left:52px" onclick="event.stopPropagation()">
+        <select style="width:auto;font-size:11px" onchange="updateModBlockIcon(this)">
+          <option ${m.type==='doc'?'selected':''} value="doc">📄 Document</option>
+          <option ${m.type==='video'?'selected':''} value="video">▶️ Video</option>
+          <option ${m.type==='quiz'?'selected':''} value="quiz">📝 Quiz</option>
+          <option ${m.type==='signoff'?'selected':''} value="signoff">✅ Sign-off</option>
+        </select>
+        <span class="badge ${m.status==='published'?'badge-success':'badge-gray'}" onclick="toggleModStatus(this)" style="cursor:pointer">${m.status==='published'?'Published':'Draft'}</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="this.closest('.mod-block').remove()">Remove</button>
+      </div>
+    </div>
+    <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:14px;background:var(--surface2)">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px">Module Notes / Description</div>
+      <textarea rows="2" placeholder="Add notes or instructions for this module..." style="margin-bottom:12px;font-size:12px"></textarea>
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Attachments</div>
+      <div id="attach-list-${uid}">${attachHTML}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn btn-sm" onclick="addAttach('${uid}','video')">▶️ Video</button>
+        <button class="btn btn-sm" onclick="addAttach('${uid}','file')">📎 File</button>
+        <button class="btn btn-sm" onclick="addAttach('${uid}','photo')">🖼️ Photo</button>
+        <button class="btn btn-sm" onclick="addAttach('${uid}','link')">🔗 Link</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function cmAddMod(courseId){
+  const list=document.getElementById('cm-modList');
+  if(!list) return;
+  const idx=list.querySelectorAll('.mod-block').length;
+  const tmp=document.createElement('div');
+  const newMod={t:'New Module',type:'doc',status:'draft',attachments:[]};
+  tmp.innerHTML=cmModRowHTML(courseId,newMod,idx+'_new');
+  list.appendChild(tmp.firstElementChild);
+}
+
+function toggleModStatus(badge){
+  const isPub=badge.textContent.trim()==='Published';
+  badge.textContent=isPub?'Draft':'Published';
+  badge.className='badge '+(isPub?'badge-gray':'badge-success');
+}
+
+function saveCourseChanges(id){
+  openSOPNotifyPrompt(id);
+}
+
+function renderSOPTab(id){
+  const updates=SOP_UPDATES[id]||[];
+  if(!updates.length) return `
+    <div class="empty" style="padding:30px 0">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">No SOP updates yet</div>
+      <div style="font-size:13px;margin-bottom:14px">When you save changes to this course, you can notify your team and track re-completion.</div>
+    </div>`;
+  return updates.map((u,ui)=>{
+    const done=u.completions.filter(c=>c.done).length;
+    const total=u.completions.length;
+    const pct=Math.round(done/total*100);
+    const overdue=u.completions.filter(c=>!c.done);
+    return `
+    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px">
+      <div style="padding:12px 14px;background:var(--surface2);display:flex;align-items:start;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px">Update — ${u.date}</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:5px">${u.note}</div>
+          <div style="font-size:11px;color:var(--text3)">Published by ${u.by} · Deadline: <strong>${u.due}</strong></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:18px;font-weight:700;color:${pct===100?'var(--success)':pct>60?'var(--warn)':'var(--danger)'}">${pct}%</div>
+          <div style="font-size:11px;color:var(--text3)">${done}/${total} complete</div>
+        </div>
+      </div>
+      <div class="progress-bar" style="height:4px;margin:0;border-radius:0"><div class="progress-fill ${pct===100?'green':pct>60?'':'amber'}" style="width:${pct}%"></div></div>
+      <div style="padding:10px 14px">
+        ${u.completions.map(c=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <div class="av av-sm" style="background:${c.bg};color:${c.tc}">${c.ini}</div>
+          <div style="flex:1;font-size:13px">${c.name}</div>
+          ${c.done
+            ?`<span class="badge badge-success">✓ Done ${c.doneDate}</span>`
+            :`<div style="display:flex;align-items:center;gap:6px">
+                <span class="badge badge-danger">Incomplete</span>
+                <button class="btn btn-sm" onclick="toast('Reminder sent to ${c.name}!')">Remind</button>
+              </div>`}
+        </div>`).join('')}
+        ${overdue.length?`
+        <div style="margin-top:10px">
+          <button class="btn btn-sm" onclick="toast('Reminders sent to all ${overdue.length} incomplete team members!')">
+            📧 Remind All Incomplete (${overdue.length})
+          </button>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSOPNotifyPrompt(id){
+  const co=COURSES.find(c=>c.id===id);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:600">Save & Notify Team?</div>
+      <button class="btn btn-sm" onclick="openCourseModal(${id})">← Back</button>
+    </div>
+    <div class="callout callout-blue" style="margin-bottom:18px">
+      Changes to <strong>${co.title}</strong> will be saved. Do you want to notify your team and require them to re-complete this course?
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <label style="display:flex;align-items:start;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer" onclick="selectNotifyOpt(this,'yes')">
+        <input type="radio" name="notifyOpt" style="width:auto;margin-top:2px">
+        <div>
+          <div style="font-size:13px;font-weight:500">Yes — notify team & require re-completion</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Team members will receive a notification and must re-complete the course by the deadline.</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:start;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer" onclick="selectNotifyOpt(this,'no')">
+        <input type="radio" name="notifyOpt" style="width:auto;margin-top:2px">
+        <div>
+          <div style="font-size:13px;font-weight:500">No — save quietly</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Changes save without notifying anyone. Existing completions remain unchanged.</div>
+        </div>
+      </label>
+    </div>
+    <div id="sop-notify-details" style="display:none">
+      <div class="form-group"><label class="form-label">What changed? (shown in notification)</label>
+        <textarea id="sopUpdateNote" rows="2" placeholder="e.g. Updated section 2 — revised safety procedures effective immediately."></textarea>
+      </div>
+      <div class="form-group"><label class="form-label">Re-completion deadline</label>
+        <input type="date" id="sopDueDate" style="cursor:pointer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notify which team members?</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="btn btn-sm" onclick="toggleAllAssign(true)">Select All</button>
+          <button class="btn btn-sm" onclick="toggleAllAssign(false)">Deselect All</button>
+        </div>
+        ${LEARNERS.filter(l=>l.account==='active').map(l=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer">
+          <input type="checkbox" class="assign-cb" checked>
+          <div class="av av-sm" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+          <div style="font-size:13px">${l.name} <span style="color:var(--text3);font-size:11px">· ${l.dept}</span></div>
+        </label>`).join('')}
+      </div>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="finalSaveCourse(${id})">Save Course</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function selectNotifyOpt(label, val){
+  label.closest('div').querySelectorAll('label').forEach(l=>l.style.borderColor='var(--border)');
+  label.style.borderColor='var(--accent-mid)';
+  const details=document.getElementById('sop-notify-details');
+  if(details) details.style.display=val==='yes'?'block':'none';
+  label.querySelector('input[type=radio]').checked=true;
+}
+
+function finalSaveCourse(id){
+  const notifyYes=document.querySelector('input[name=notifyOpt]:checked');
+  const isNotify=notifyYes&&notifyYes.closest('label').querySelector('.btn')==null&&
+    document.getElementById('sop-notify-details')?.style.display!=='none';
+  const note=document.getElementById('sopUpdateNote')?.value||'Course content updated.';
+  const due=document.getElementById('sopDueDate')?.value;
+  const dueFormatted=due?new Date(due).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'TBD';
+  const checked=document.querySelectorAll('.assign-cb:checked').length;
+  if(document.getElementById('sop-notify-details')?.style.display==='block'){
+    if(!SOP_UPDATES[id]) SOP_UPDATES[id]=[];
+    SOP_UPDATES[id].unshift({
+      date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+      note:note||'Course content updated.',
+      by:'Eleni Gagnon',
+      due:dueFormatted,
+      completions:LEARNERS.filter(l=>l.account==='active').map(l=>({
+        name:l.name,ini:l.ini,bg:l.bg,tc:l.tc,done:false,doneDate:null
+      }))
+    });
+    toast(`✓ Saved! Notifications sent to ${checked} team members. Re-completion deadline: ${dueFormatted}`);
+  } else {
+    toast('✓ Course saved quietly. No notifications sent.');
+  }
+  closeModal();
+  renderCourseLibrary(document.getElementById('mainContent'));
+}
+
+// ─── CREATE COURSE ─────────────────────────────────────────────────────────
+function renderCreate(c){
+  c.innerHTML=`
+  <div class="card" style="max-width:700px">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab(this,'tc-info')">1. Course Info</div>
+      <div class="tab" onclick="switchTab(this,'tc-mods')">2. Modules</div>
+      <div class="tab" onclick="switchTab(this,'tc-quiz')">3. Quiz Builder</div>
+      <div class="tab" onclick="switchTab(this,'tc-assign')">4. Assign Learners</div>
+    </div>
+    <div id="tc-info">
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Course Title</label><input type="text" placeholder="e.g. Security Fundamentals"></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select onchange="showCatDesc(this.value)" id="newCourseCat">
+            ${CATS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}
+          </select>
+          <div id="catDescPreview" style="margin-top:6px;font-size:12px;color:var(--text2);padding:7px 10px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">${CATS[0].desc}</div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea placeholder="What will learners gain from this course?"></textarea></div>
+      <div class="grid2">
+        <div class="form-group">
+          <label class="form-label">Estimated Duration</label>
+          <select>
+            <option value="">Select duration...</option>
+            <option>5 minutes</option>
+            <option>10 minutes</option>
+            <option>30 minutes</option>
+            <option>45 minutes</option>
+            <option>60 minutes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <div style="font-size:12px;color:var(--text2);padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);line-height:1.5">
+            📅 Due dates are assigned per user in <span style="color:var(--accent);cursor:pointer;font-weight:500" onclick="go('users')">User Management</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Course Icon</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${['📚','⚖️','🔒','📋','💡','🎯','🤝','🛡️','📊','🏆','🧪','🌐'].map(e=>`
+          <button class="btn" style="font-size:20px;padding:6px 10px" onclick="this.parentElement.querySelectorAll('.btn').forEach(b=>b.style.background='');this.style.background='var(--accent-bg)'">${e}</button>`).join('')}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Requires manager sign-off to complete?</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+          <input type="checkbox" checked> Yes — learner must be approved by their manager
+        </label>
+      </div>
+    </div>
+    <div id="tc-mods" style="display:none">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Drag ⠿ to reorder modules. Click a module to expand and add attachments.</div>
+      <div id="modList">
+        ${[{t:'Introduction & Welcome',type:'doc'},{t:'Core Training Video',type:'video'},{t:'Knowledge Check Quiz',type:'quiz'},{t:'Manager Sign-Off',type:'signoff'}].map((m,i)=>modRowHTML(m.t,m.type,i)).join('')}
+      </div>
+      <button class="btn" style="margin-top:12px" onclick="addMod()">+ Add Module</button>
+    </div>
+    <div id="tc-quiz" style="display:none">
+      <div id="questionList">
+        ${QUIZ.slice(0,2).map((q,qi)=>`
+        <div class="card" style="margin-bottom:14px;padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span class="badge badge-blue">Question ${qi+1}</span>
+            <button class="btn btn-sm btn-danger" onclick="this.closest('.card').remove()">Remove</button>
+          </div>
+          <div class="form-group" style="margin-bottom:10px"><input type="text" value="${q.q}" placeholder="Question text"></div>
+          ${q.opts.map((o,oi)=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <input type="radio" name="correct_${qi}" ${oi===q.correct?'checked':''}>
+            <input type="text" value="${o}" style="flex:1" placeholder="Answer option">
+          </div>`).join('')}
+        </div>`).join('')}
+      </div>
+      <button class="btn" onclick="addQuestion()">+ Add Question</button>
+      <div style="margin-top:12px;font-size:12px;color:var(--text3)">Select the radio button next to the correct answer for each question.</div>
+    </div>
+    <div id="tc-assign" style="display:none">
+      <div class="form-group"><label class="form-label">Assign to department</label>
+        <select><option>All New Hires</option><option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option></select>
+      </div>
+      <div class="card-title" style="margin-top:8px">Individual Learners</div>
+      ${LEARNERS.map(l=>`
+      <label style="display:flex;align-items:center;gap:10px;padding:9px 0;cursor:pointer;border-bottom:1px solid var(--border)">
+        <input type="checkbox" checked>
+        <div class="av av-sm" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div><div style="font-size:13px;font-weight:500">${l.name}</div><div style="font-size:11px;color:var(--text3)">${l.dept}</div></div>
+        <span class="badge badge-gray" style="margin-left:auto">${l.status==='complete'?'All done':'Active'}</span>
+      </label>`).join('')}
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="toast('Course published! Learners have been notified.')">Publish Course</button>
+      <button class="btn" onclick="toast('Draft saved.')">Save Draft</button>
+    </div>
+  </div>`;
+}
+
+function switchTab(el,id){
+  const container=el.closest('.card')||el.closest('.modal')||el.closest('#modalContent');
+  if(container) container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['tc-info','tc-mods','tc-quiz','tc-assign','cm-info','cm-mods','cm-sop','pm-progress','pm-profile','pm-access','eu-info','eu-courses','eu-access'].forEach(tid=>{
+    const el2=document.getElementById(tid);
+    if(el2) el2.style.display=tid===id?'block':'none';
+  });
+}
+
+function modRowHTML(title, type, idx){
+  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+  const colors={doc:'doc',video:'video',quiz:'quiz',signoff:'signoff'};
+  const uid='mod_'+Date.now()+'_'+idx;
+  return `<div class="mod-block" draggable="true" data-uid="${uid}"
+    ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)"
+    style="border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);cursor:pointer"
+      onclick="toggleModExpand('${uid}')">
+      <div style="cursor:grab;color:var(--text3);font-size:16px;padding:0 2px" onclick="event.stopPropagation()">⠿</div>
+      <div class="module-icon ${colors[type]||'doc'}" style="flex-shrink:0">${icons[type]||'📄'}</div>
+      <input type="text" value="${title}" onclick="event.stopPropagation()"
+        style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0">
+      <select style="width:auto;font-size:12px" onclick="event.stopPropagation()" onchange="updateModBlockIcon(this)">
+        <option ${type==='doc'?'selected':''} value="doc">📄 Document</option>
+        <option ${type==='video'?'selected':''} value="video">▶️ Video</option>
+        <option ${type==='quiz'?'selected':''} value="quiz">📝 Quiz</option>
+        <option ${type==='signoff'?'selected':''} value="signoff">✅ Sign-off</option>
+      </select>
+      <span style="font-size:11px;color:var(--text3);padding:0 4px" id="expand-arrow-${uid}">▼</span>
+      <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();this.closest('.mod-block').remove()">Remove</button>
+    </div>
+    <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:14px 14px 10px;background:var(--surface2)">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px">Attachments & Content</div>
+      <div id="attach-list-${uid}"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn btn-sm" onclick="addAttach('${uid}','video')">▶️ Video</button>
+        <button class="btn btn-sm" onclick="addAttach('${uid}','file')">📎 File</button>
+        <button class="btn btn-sm" onclick="addAttach('${uid}','photo')">🖼️ Photo</button>
+        <button class="btn btn-sm" onclick="addAttach('${uid}','link')">🔗 Link</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleModExpand(uid){
+  const panel=document.getElementById('mod-expand-'+uid);
+  const arrow=document.getElementById('expand-arrow-'+uid);
+  if(!panel) return;
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  if(arrow) arrow.textContent=open?'▲':'▼';
+}
+
+function updateModBlockIcon(sel){
+  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+  const classes={doc:'doc',video:'video',quiz:'quiz',signoff:'signoff'};
+  const row=sel.closest('.mod-block');
+  const icon=row.querySelector('.module-icon');
+  if(icon){icon.textContent=icons[sel.value]||'📄';icon.className='module-icon '+(classes[sel.value]||'doc');}
+}
+
+// drag reorder for modules
+let _modDragEl=null;
+function modDragStart(e){
+  _modDragEl=e.currentTarget;
+  setTimeout(()=>_modDragEl&&(_modDragEl.style.opacity='0.4'),0);
+}
+function modDragOver(e){
+  e.preventDefault();
+  const target=e.currentTarget;
+  if(target!==_modDragEl) target.style.borderColor='var(--accent-mid)';
+}
+function modDragLeave(e){e.currentTarget.style.borderColor='var(--border)';}
+function modDrop(e){
+  e.preventDefault();
+  const target=e.currentTarget;
+  target.style.borderColor='var(--border)';
+  if(!_modDragEl||target===_modDragEl) return;
+  const list=_modDragEl.parentElement;
+  if(!list) return;
+  const nodes=[...list.querySelectorAll(':scope > .mod-block')];
+  const fromIdx=nodes.indexOf(_modDragEl);
+  const toIdx=nodes.indexOf(target);
+  if(fromIdx<0||toIdx<0) return;
+  if(fromIdx<toIdx) target.after(_modDragEl);
+  else target.before(_modDragEl);
+  _modDragEl.style.opacity='1';
+  _modDragEl=null;
+}
+
+// attachments
+function addAttach(uid, kind){
+  const list=document.getElementById('attach-list-'+uid);
+  if(!list) return;
+  const d=document.createElement('div');
+  d.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px';
+  const kindIcons={video:'▶️',file:'📎',photo:'🖼️',link:'🔗'};
+  const kindLabels={video:'Video URL or embed',file:'File name / upload',photo:'Image URL or upload',link:'Paste URL'};
+  const kindHints={video:'e.g. https://youtube.com/watch?v=...',file:'e.g. Employee_Handbook.pdf',photo:'e.g. https://... or upload',link:'e.g. https://company.com/policy'};
+  d.innerHTML=`
+    <span style="font-size:16px;flex-shrink:0">${kindIcons[kind]}</span>
+    <input type="text" placeholder="${kindHints[kind]}" style="flex:1;font-size:12px;padding:5px 8px">
+    ${kind==='file'||kind==='photo'?`<label class="btn btn-sm" style="cursor:pointer;font-size:11px">
+      Upload <input type="file" style="display:none" ${kind==='photo'?'accept="image/*"':''} onchange="handleUpload(this)">
+    </label>`:''}
+    <button class="btn btn-sm btn-danger" style="flex-shrink:0" onclick="this.closest('div').remove()">✕</button>`;
+  list.appendChild(d);
+}
+
+function handleUpload(input){
+  if(input.files&&input.files[0]){
+    const name=input.files[0].name;
+    const textInput=input.closest('div').querySelector('input[type=text]');
+    if(textInput) textInput.value=name;
+    toast(`"${name}" attached!`);
+  }
+}
+
+
+
+
+function addQuestion(){
+  const ql=document.getElementById('questionList');
+  const n=ql.querySelectorAll('.card').length+1;
+  const d=document.createElement('div');
+  d.className='card';d.style.marginBottom='14px';d.style.padding='14px 16px';
+  d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span class="badge badge-blue">Question ${n}</span>
+    <button class="btn btn-sm btn-danger" onclick="this.closest('.card').remove()">Remove</button>
+  </div>
+  <div class="form-group" style="margin-bottom:10px"><input type="text" placeholder="Enter your question here..."></div>
+  ${['A','B','C','D'].map((l,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <input type="radio" name="correct_new${n}">
+    <input type="text" placeholder="Answer option ${l}" style="flex:1">
+  </div>`).join('')}`;
+  ql.appendChild(d);
+}
+
+// ─── PEOPLE (unified Learners + User Management) ───────────────────────────
+function renderPeople(c){
+  const tr=document.getElementById('topbarRight');
+  if(S.role==='admin'){
+    tr.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Add Person</button>`;
+  }
+
+  const activeCount=LEARNERS.filter(l=>l.account==='active').length;
+  const completeCount=LEARNERS.filter(l=>l.status==='complete').length;
+  const overdueCount=LEARNERS.filter(l=>l.overdue>0).length;
+
+  c.innerHTML=`
+  <div class="grid4 section-gap">
+    <div class="metric-card"><div class="metric-label">Total People</div><div class="metric-value">${LEARNERS.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Active</div><div class="metric-value" style="color:var(--success)">${activeCount}</div></div>
+    <div class="metric-card"><div class="metric-label">All Courses Done</div><div class="metric-value" style="color:var(--accent)">${completeCount}</div></div>
+    <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:var(--danger)">${overdueCount}</div></div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input" style="max-width:260px"><input type="text" placeholder="Search by name or email..." id="peopleSearch" oninput="filterPeople()"></div>
+    <select style="width:auto" id="peopleDeptFilter" onchange="filterPeople()">
+      <option value="">All Departments</option>
+      <option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option>
+    </select>
+    <select style="width:auto" id="peopleStatusFilter" onchange="filterPeople()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Job Title</th>
+          <th>Dept</th>
+          <th>Manager</th>
+          <th>Start Date</th>
+          <th>LMS Progress</th>
+          <th>Status</th>
+          <th>Account</th>
+          <th>Edit</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="peopleTableBody">
+        ${renderPeopleRows(LEARNERS)}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderPeopleRows(list){
+  return list.map(l=>`
+  <tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div>
+          <div style="font-weight:500">${l.name}</div>
+          <div style="font-size:11px;color:var(--text3)">${l.email}</div>
+        </div>
+      </div>
+    </td>
+    <td style="color:var(--text2);font-size:13px">${l.title}</td>
+    <td><span class="badge badge-gray">${l.dept}</span></td>
+    <td style="font-size:13px;color:var(--text2)">${l.manager}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.start}</td>
+    <td style="min-width:130px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="progress-bar" style="flex:1;margin:0">
+          <div class="progress-fill ${l.prog===100?'green':l.prog>60?'':'amber'}" style="width:${l.prog}%"></div>
+        </div>
+        <span style="font-size:11px;color:var(--text2);min-width:28px">${l.prog}%</span>
+      </div>
+      ${l.overdue>0?`<div style="font-size:10px;color:var(--danger);margin-top:2px">${l.overdue} overdue</div>`:''}
+    </td>
+    <td><span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':'badge-warn'}">${l.status==='complete'?'Complete':l.overdue>0?'Overdue':'Active'}</span></td>
+    <td><span class="badge ${l.account==='active'?'badge-success':'badge-gray'}">${l.account==='active'?'Active':'Inactive'}</span></td>
+    <td>
+      <button class="btn btn-sm btn-primary" onclick="openPersonModal('${l.name}')">✏️ Edit</button>
+    </td>
+    <td>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="toast('Reminder sent to ${l.name}!')">Remind</button>
+        <button class="btn btn-sm" style="color:${l.account==='active'?'var(--danger)':'var(--success)'};border-color:${l.account==='active'?'var(--danger-border)':'var(--success-border)'}"
+          onclick="toggleAccount('${l.name}',this)">${l.account==='active'?'Deactivate':'Activate'}</button>
+      </div>
+    </td>
+  </tr>`).join('');
+}
+
+function filterPeople(){
+  const search=(document.getElementById('peopleSearch')?.value||'').toLowerCase();
+  const dept=document.getElementById('peopleDeptFilter')?.value||'';
+  const status=document.getElementById('peopleStatusFilter')?.value||'';
+  const filtered=LEARNERS.filter(l=>{
+    const matchS=!search||l.name.toLowerCase().includes(search)||l.email.toLowerCase().includes(search);
+    const matchD=!dept||l.dept===dept;
+    const matchSt=!status||l.account===status;
+    return matchS&&matchD&&matchSt;
+  });
+  const tbody=document.getElementById('peopleTableBody');
+  if(tbody) tbody.innerHTML=renderPeopleRows(filtered);
+}
+
+// unified person modal — combines learner progress + user profile + access
+function openPersonModal(name){
+  const l=LEARNERS.find(x=>x.name===name);
+  if(!l) return;
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="av av-lg" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div>
+          <div style="font-size:17px;font-weight:600">${l.name}</div>
+          <div style="font-size:13px;color:var(--text2)">${l.title} · ${l.dept}</div>
+          <div style="display:flex;gap:6px;margin-top:5px">
+            <span class="badge ${l.account==='active'?'badge-success':'badge-gray'}">${l.account==='active'?'Active':'Inactive'}</span>
+            <span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':'badge-warn'}">${l.status==='complete'?'All Done':l.overdue>0?l.overdue+' Overdue':'In Progress'}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="expand-btn" onclick="toggleModalExpand(this)">⤢ Expand</button>
+        <button class="btn btn-sm" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab(this,'pm-progress')">Learning Progress</div>
+      <div class="tab" onclick="switchTab(this,'pm-profile')">Profile</div>
+      <div class="tab" onclick="switchTab(this,'pm-access')">Access & Security</div>
+    </div>
+
+    <div id="pm-progress">
+      <div class="grid2 section-gap" style="margin-bottom:16px">
+        <div class="metric-card"><div class="metric-label">Overall Progress</div><div class="metric-value">${l.prog}%</div></div>
+        <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:${l.overdue?'var(--danger)':'var(--text)'}">${l.overdue}</div></div>
+      </div>
+      <div class="card-title">Course Progress</div>
+      ${COURSES.slice(0,5).map((co,i)=>{
+        const pcts=[35,80,0,60,10];
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+          <div style="font-size:18px">${co.emoji}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;margin-bottom:3px">${co.title}</div>
+            <div class="progress-bar" style="margin:0"><div class="progress-fill ${pcts[i]===100?'green':''}" style="width:${pcts[i]}%"></div></div>
+          </div>
+          <span style="font-size:12px;color:var(--text2)">${pcts[i]}%</span>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="toast('Reminder sent to ${l.name}!')">📧 Send Reminder</button>
+        <button class="btn btn-sm" onclick="toast('Progress report exported.')">↓ Export Report</button>
+      </div>
+    </div>
+
+    <div id="pm-profile" style="display:none">
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" value="${l.name}"></div>
+        <div class="form-group"><label class="form-label">Email Address</label><input type="email" value="${l.email}"></div>
+      </div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Job Title</label><input type="text" value="${l.title}"></div>
+        <div class="form-group"><label class="form-label">Department</label>
+          <select>${['Finance', 'Human Resources', 'Marketing', 'Operations', 'Sales'].map(d=>`<option${d===l.dept?' selected':''}>${d}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Assigned Manager</label>
+          <select>${['Sam Rivera','Eleni Gagnon','Morgan Lee'].map(m=>`<option${m===l.manager?' selected':''}>${m}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label class="form-label">Start / Hire Date</label>
+          <input type="date" value="${toDateInput(l.start)}" style="cursor:pointer">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">System Role</label>
+        <select><option>Learner</option><option>Manager</option><option>Admin / HR</option><option>Executive (View Only)</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assigned Courses</label>
+        ${COURSES.slice(0,4).map((co,i)=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:1px solid var(--border)">
+          <input type="checkbox" ${i<3?'checked':''}>
+          <div style="font-size:16px">${co.emoji}</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">${co.title}</div><div style="font-size:11px;color:var(--text3)">${co.cat}</div></div>
+          <input type="date" style="font-size:11px;padding:3px 6px;width:130px" placeholder="Due date">
+        </label>`).join('')}
+      </div>
+    </div>
+
+    <div id="pm-access" style="display:none">
+      <div class="callout callout-blue" style="margin-bottom:16px">
+        Last login: <strong>Mar 26, 2026 at 9:14 AM</strong>
+      </div>
+      <div class="form-group"><label class="form-label">Account Status</label>
+        <select>
+          <option ${l.account==='active'?'selected':''}>Active</option>
+          <option ${l.account==='inactive'?'selected':''}>Inactive</option>
+          <option>Suspended</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <button class="btn" onclick="toast('Password reset email sent to ${l.email}!')">📧 Send Password Reset</button>
+        <button class="btn" onclick="toast('Login invitation resent to ${l.email}!')">🔁 Resend Login Invite</button>
+        <button class="btn btn-danger" onclick="toast('${l.name} has been deactivated.');closeModal()">🚫 Deactivate Account</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="toast('Changes saved for ${l.name}!');closeModal()">Save Changes</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+
+
+function openLearnerModal(name){
+  const l=LEARNERS.find(x=>x.name===name);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:18px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="av av-lg" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div><div style="font-size:17px;font-weight:600;margin-bottom:3px">${l.name}</div>
+          <div style="font-size:13px;color:var(--text2)">${l.dept}</div>
+          <span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':'badge-warn'}" style="margin-top:4px">${l.status==='complete'?'Complete':l.overdue>0?'Overdue':'Active'}</span>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="grid2 section-gap">
+      <div class="metric-card"><div class="metric-label">Overall Progress</div><div class="metric-value">${l.prog}%</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:${l.overdue?'var(--danger)':'var(--text)'}">${l.overdue}</div></div>
+    </div>
+    <div class="card-title">Course Progress</div>
+    ${COURSES.slice(0,4).map((co,i)=>{
+      const pcts=[35,80,0,60];
+      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+        <div style="font-size:18px">${co.emoji}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;margin-bottom:3px">${co.title}</div>
+          <div class="progress-bar" style="margin:0"><div class="progress-fill ${pcts[i]===100?'green':''}" style="width:${pcts[i]}%"></div></div>
+        </div>
+        <span style="font-size:12px;color:var(--text2)">${pcts[i]}%</span>
+      </div>`;
+    }).join('')}
+    <hr class="divider">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="toast('Reminder sent to ${l.name}!');closeModal()">Send Reminder</button>
+      <button class="btn" onclick="toast('Progress report exported.')">Export Report</button>
+      <button class="btn" onclick="toast('Reassigned course list updated.')">Manage Courses</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function openInviteModal(){
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:17px;font-weight:600">Invite New Learner</div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Full Name</label><input type="text" placeholder="e.g. Jamie Torres"></div>
+    <div class="form-group"><label class="form-label">Email Address</label><input type="email" placeholder="jamie@company.com"></div>
+    <div class="form-group"><label class="form-label">Department</label><select><option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option></select></div>
+    <div class="form-group"><label class="form-label">Manager</label><select><option>Sam Rivera</option><option>Eleni Gagnon</option><option>Morgan Lee</option></select></div>
+    <div class="form-group"><label class="form-label">Assign Onboarding Track</label>
+      ${COURSES.slice(0,3).map(co=>`
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;font-size:13px">
+        <input type="checkbox" checked> ${co.emoji} ${co.title}
+      </label>`).join('')}
+    </div>
+    <button class="btn btn-primary" onclick="toast('Invitation sent! Learner will receive an email.');closeModal()">Send Invitation</button>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+// ─── SIGN-OFFS ─────────────────────────────────────────────────────────────
+function renderSignoffs(c){
+  const pending=[
+    {name:'Alex Chen',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',course:'Security Fundamentals',date:'Mar 25',score:88},
+    {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',course:'Compliance & Ethics',date:'Mar 24',score:95},
+    {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',course:'HR Policies & Benefits',date:'Mar 22',score:72},
+  ];
+  const approved=[
+    {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',course:'Security Fundamentals',approvedDate:'Mar 20',by:'Sam Rivera'},
+    {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',course:'Compliance & Ethics',approvedDate:'Mar 19',by:'Sam Rivera'},
+    {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',course:'HR Policies & Benefits',approvedDate:'Mar 17',by:'Eleni Gagnon'},
+  ];
+  c.innerHTML=`
+  <div class="tab-bar">
+    <div class="tab active" onclick="swSOTab(this,'so-pend')">Pending <span class="badge badge-warn" style="margin-left:6px">${pending.length}</span></div>
+    <div class="tab" onclick="swSOTab(this,'so-appr')">Approved (${approved.length})</div>
+  </div>
+  <div id="so-pend">
+    ${pending.map((s,i)=>`
+    <div class="card section-gap" id="so-${i}">
+      <div style="display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="av av-md" style="background:${s.bg};color:${s.tc}">${s.ini}</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">${s.name}</div>
+            <div style="font-size:12px;color:var(--text2)">Completed: ${s.course}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">Submitted ${s.date} · Quiz score: <strong style="color:${s.score>=80?'var(--success)':'var(--warn)'}">${s.score}%</strong></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="toast('Opening ${s.name}\'s submissions...')">Review Work</button>
+          <button class="btn btn-sm btn-success" onclick="approveSO(${i},'${s.name}')">✓ Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="toast('Sent back to ${s.name} with revision request.')">Request Revision</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label class="form-label">Sign-off notes (optional)</label>
+        <textarea rows="2" placeholder="Add feedback or notes for the learner's record..."></textarea>
+      </div>
+    </div>`).join('')}
+  </div>
+  <div id="so-appr" style="display:none">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Learner</th><th>Course</th><th>Approved Date</th><th>Approved By</th><th>Certificate</th></tr></thead>
+        <tbody>
+          ${approved.map(a=>`<tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-sm" style="background:${a.bg};color:${a.tc}">${a.ini}</div>${a.name}</div></td>
+            <td>${a.course}</td>
+            <td>${a.approvedDate}</td>
+            <td>${a.by}</td>
+            <td><button class="btn btn-sm" onclick="toast('Certificate downloaded.')">📄 Download</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function approveSO(i,name){
+  const el=document.getElementById(`so-${i}`);
+  el.style.opacity='0.4';el.style.pointerEvents='none';
+  toast(`✓ Sign-off approved for ${name}. They have been notified.`);
+}
+
+function swSOTab(el,id){
+  el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['so-pend','so-appr'].forEach(tid=>{
+    const e2=document.getElementById(tid);
+    if(e2) e2.style.display=tid===id?'block':'none';
+  });
+}
+
+// ─── REPORTS ───────────────────────────────────────────────────────────────
+function renderReports(c){
+  const tr=document.getElementById('topbarRight');
+  tr.innerHTML=`
+    <button class="btn btn-sm" onclick="toast('CSV exported.')">↓ CSV</button>
+    <button class="btn btn-sm" onclick="toast('PDF report generated.')">↓ PDF</button>`;
+  c.innerHTML=`
+  <div class="search-bar">
+    <select style="width:auto"><option>All Departments</option><option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option></select>
+    <select style="width:auto"><option>Last 30 days</option><option>Last 90 days</option><option>All time</option></select>
+  </div>
+  <div class="grid4 section-gap">
+    <div class="metric-card"><div class="metric-label">Total Learners</div><div class="metric-value">47</div></div>
+    <div class="metric-card"><div class="metric-label">Completions</div><div class="metric-value">29</div><div class="metric-delta up">↑ 8 vs last month</div></div>
+    <div class="metric-card"><div class="metric-label">Avg Quiz Score</div><div class="metric-value">84%</div><div class="metric-delta up">↑ 3%</div></div>
+    <div class="metric-card"><div class="metric-label">Avg Days to Complete</div><div class="metric-value">11d</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Completion by Course</div>
+      ${COURSES.map(co=>{
+        const pct=Math.round(co.completed/co.enrolled*100);
+        return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:13px">
+          <div style="font-size:18px;width:24px;text-align:center">${co.emoji}</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+              <span style="font-weight:500">${co.title}</span>
+              <span style="color:var(--text2)">${pct}%</span>
+            </div>
+            <div class="progress-bar" style="margin:0"><div class="progress-fill ${pct>70?'green':pct>40?'':'amber'}" style="width:${pct}%"></div></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">Learner Leaderboard</div>
+      ${[...LEARNERS].sort((a,b)=>b.prog-a.prog).map((l,i)=>`
+      <div class="learner-row">
+        <div style="font-size:14px;font-weight:600;width:20px;color:var(--text3);text-align:center">${i+1}</div>
+        <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:500">${l.name}</div><div style="font-size:11px;color:var(--text3)">${l.dept}</div></div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:600">${l.prog}%</div>
+          <span class="badge ${l.status==='complete'?'badge-success':'badge-warn'}" style="font-size:10px">${l.status==='complete'?'Done':'Active'}</span>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ─── MY COURSES ─────────────────────────────────────────────────────────────
+function renderMyCourses(c){
+  const myPcts={7:S.activeCourseId===7?S.progress:20, 1:S.activeCourseId===1?S.progress:35, 2:80, 3:20};
+  c.innerHTML=`
+  <div class="grid3">
+    ${COURSES.slice(0,4).map((co)=>{
+      const pct=myPcts[co.id]||0;
+      return `<div class="course-card" onclick="openLearnerCourse(${co.id})">
+        <div class="course-thumb" style="background:${co.color}">${co.emoji}</div>
+        <div class="course-body">
+          <div class="course-title">${co.title}</div>
+          <div class="course-meta"><span class="badge badge-gray">${co.cat}</span></div>
+          <div class="progress-bar" style="margin-top:8px"><div class="progress-fill ${pct===100?'green':''}" style="width:${pct}%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px">
+            <span style="font-size:11px;color:var(--text3)">${pct}% done</span>
+            <span style="font-size:11px;color:var(--text3)">${co.dur}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function openLearnerCourse(id){
+  S.activeCourseId=id;
+  S.videoWatched=false;
+  S.quizReady=false;
+  VID.playing=false; VID.elapsed=0;
+  clearInterval(VID.timer);
+  go('course-detail');
+}
+
+// ─── COURSE DETAIL ─────────────────────────────────────────────────────────
+function renderCourseDetail(c){
+  const co=COURSES.find(x=>x.id===S.activeCourseId)||COURSES[0];
+  const qs=S.quiz;
+  const mods=COURSE_MODULES[co.id]||[
+    {t:'Introduction & Welcome',type:'doc',status:'published',attachments:[]},
+    {t:'Core Training Video',type:'video',status:'published',attachments:[]},
+    {t:'Knowledge Check Quiz',type:'quiz',status:'published',attachments:[]},
+    {t:'Manager Sign-Off',type:'signoff',status:'draft',attachments:[]},
+  ];
+  const hasVideo=mods.some(m=>m.type==='video');
+  const hasQuiz=mods.some(m=>m.type==='quiz');
+  const totalSteps=(hasVideo?1:0)+(hasQuiz?1:0)+1; // +1 for intro
+  const doneSteps=(hasVideo&&S.videoWatched?1:0)+(hasQuiz&&qs.done&&qs.score>=3?1:0)+1;
+  const pct=Math.round(doneSteps/Math.max(totalSteps,1)*100);
+
+  document.getElementById('pageTitle').textContent='';
+  document.getElementById('pageCrumb').textContent='My Courses / '+co.title;
+  document.getElementById('topbarRight').innerHTML=`<button class="btn btn-sm" onclick="go('my-courses')">← Back to My Courses</button>`;
+
+  c.innerHTML=`
+  <div class="grid2" style="align-items:start">
+    <div>
+      <div class="card section-gap" style="padding:16px 18px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="font-size:36px;flex-shrink:0">${co.emoji}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:16px;font-weight:600;margin-bottom:2px">${co.title}</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${co.cat} · ${co.dur}</div>
+            <div class="progress-bar" style="margin:0 0 4px"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:11px;color:var(--text3)">${pct}% complete</span>
+              <span class="badge ${pct===100?'badge-success':pct>50?'badge-blue':'badge-warn'}">${pct===100?'✓ Done':pct+''+'% done'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${hasVideo ? `
+      <div class="card section-gap">
+        <div class="card-title">Video Module — ${mods.find(m=>m.type==='video')?.t||'Training Video'}</div>
+        ${S.videoWatched ? `
+        <div style="background:#0f1729;border-radius:var(--radius-lg);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+          <div style="font-size:36px">✅</div>
+          <div style="color:#fff;font-size:13px;font-weight:500">Video completed</div>
+          <div style="color:rgba(255,255,255,0.5);font-size:11px">${co.title} · ${co.dur}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <span class="badge badge-success">✓ Watched</span>
+          <span style="font-size:12px;color:var(--text3)">Completed — system verified</span>
+        </div>` : `
+        <div class="video-player" id="vidPlayer" style="cursor:default">
+          <div class="vid-overlay" id="vidOverlay">
+            <div class="vid-play" id="vidPlayBtn" onclick="startVideo()" style="cursor:pointer">▶</div>
+            <div style="font-size:13px;opacity:0.7">${co.title}</div>
+            <div style="font-size:11px;opacity:0.5;margin-top:3px">${co.dur} · Must watch to continue</div>
+          </div>
+          <div class="vid-controls">
+            <div id="vidToggle" style="color:#fff;font-size:14px;cursor:pointer;width:20px;text-align:center" onclick="toggleVideoPlay()">▶</div>
+            <div class="vid-prog"><div class="vid-fill" id="vidFill" style="width:0%;transition:width 1s linear"></div></div>
+            <div style="color:#fff;font-size:11px;min-width:80px;text-align:right" id="vidTime">0:00 / ${co.dur}</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <span class="badge badge-warn" id="vidBadge">▶ Press play to begin</span>
+          <span style="font-size:11px;color:var(--text3)" id="vidNote">Completion is tracked automatically</span>
+        </div>`}
+      </div>` : ''}
+
+      ${hasQuiz ? `
+      <div class="card">
+        <div class="card-title">Knowledge Quiz — ${mods.find(m=>m.type==='quiz')?.t||'Quiz'}</div>
+        ${hasVideo && !S.videoWatched && !S.quizReady ? `
+        <div style="text-align:center;padding:20px;border:1px dashed var(--border2);border-radius:var(--radius-lg);background:var(--surface2)">
+          <div style="font-size:20px;margin-bottom:6px">🔒</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:3px">Quiz locked</div>
+          <div style="font-size:12px;color:var(--text3)">Watch the video to unlock the quiz.</div>
+        </div>` : !S.quizReady ? `
+        <div style="text-align:center;padding:16px">
+          <button class="btn btn-primary" onclick="S.quizReady=true;renderCourseDetail(document.getElementById('mainContent'))">I've finished the content — Take Quiz →</button>
+        </div>` : renderQuiz()}
+      </div>` : `
+      <div class="card">
+        <div class="card-title">Module Content</div>
+        <div style="font-size:13px;color:var(--text2);padding:16px 0">
+          Review all materials in this course, then request your manager sign-off below.
+        </div>
+      </div>`}
+    </div>
+
+    <div>
+      <div class="card section-gap">
+        <div class="card-title">Course Modules</div>
+        ${mods.map((m,i)=>{
+          const done=(m.type==='doc'&&i===0)||(m.type==='video'&&S.videoWatched)||(m.type==='quiz'&&qs.done&&qs.score>=3)||(m.type==='signoff'&&S.signedOff);
+          const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+          return `<div class="module-row">
+            <div class="module-icon ${m.type}">${icons[m.type]||'📄'}</div>
+            <div style="flex:1;font-size:13px;font-weight:500">${m.t}</div>
+            <div class="check-c ${done?'done':''}">${done?'✓':''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${S.signedOff?`
+      <div class="card" style="background:var(--success-bg);border-color:var(--success-border)">
+        <div style="font-size:14px;font-weight:600;color:var(--success);margin-bottom:4px">🏆 Course Complete!</div>
+        <div style="font-size:12px;color:var(--text2)">Signed off by Sam Rivera · Mar 26, 2026</div>
+        <button class="btn btn-sm btn-success" style="margin-top:12px" onclick="toast('Certificate downloaded!')">📄 Download Certificate</button>
+      </div>`:`
+      <div class="signoff-box">
+        <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Manager Sign-Off Required</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Complete all modules, then request sign-off from your manager to earn your certificate.</div>
+        <button class="btn btn-sm btn-primary" onclick="reqSignoff()">Request Sign-Off from Manager</button>
+      </div>`}
+
+    </div>
+  </div>`;
+}
+
+function renderQuiz(){
+  const qs=S.quiz;
+  if(qs.done){
+    const pct=Math.round(qs.score/QUIZ.length*100);
+    const passed=qs.score>=3;
+    return `<div style="text-align:center;padding:20px 0">
+      <div style="font-size:40px;margin-bottom:10px">${passed?'🏆':'📚'}</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:6px">${qs.score}/${QUIZ.length} Correct</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:6px">${pct}% — ${passed?'Passed! Great work.':'Score 75% or higher to pass.'}</div>
+      ${passed
+        ?`<div class="callout callout-success" style="margin:14px 0">Quiz complete! Continue to the next module.</div>
+          <button class="btn btn-primary" onclick="retakeQuiz()">Continue to Next Module</button>`
+        :`<div class="callout callout-warn" style="margin:14px 0">Not quite — give it another try!</div>
+          <button class="btn" onclick="retakeQuiz()">↺ Try Again</button>`}
+    </div>`;
+  }
+  const q=QUIZ[qs.q];
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:11px;color:var(--text3);font-weight:500">QUESTION ${qs.q+1} OF ${QUIZ.length}</span>
+      <div style="display:flex;gap:4px">${QUIZ.map((_,i)=>`<div style="width:20px;height:3px;border-radius:2px;background:${i<qs.q?'var(--accent)':i===qs.q?'var(--accent-mid)':'var(--border2)'}"></div>`).join('')}</div>
+    </div>
+    <div style="font-size:14px;font-weight:500;margin-bottom:16px;line-height:1.5">${q.q}</div>
+    ${q.opts.map((o,i)=>`
+    <div class="quiz-opt ${qs.answered?(i===q.correct?'correct':qs.sel===i?'wrong':''):(qs.sel===i?'selected':'')}" onclick="pickAns(${i})">
+      <div class="quiz-letter">${qs.answered&&i===q.correct?'✓':qs.answered&&qs.sel===i&&i!==q.correct?'✕':String.fromCharCode(65+i)}</div>
+      ${o}
+    </div>`).join('')}
+    ${qs.answered?`<button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="nextQ()">${qs.q<QUIZ.length-1?'Next Question →':'See Results'}</button>`:''}`;
+}
+
+function pickAns(i){
+  if(S.quiz.answered) return;
+  S.quiz.sel=i;S.quiz.answered=true;
+  if(i===QUIZ[S.quiz.q].correct) S.quiz.score++;
+  renderCourseDetail(document.getElementById('mainContent'));
+}
+function nextQ(){
+  if(S.quiz.q<QUIZ.length-1){S.quiz.q++;S.quiz.sel=null;S.quiz.answered=false;}
+  else{
+    S.quiz.done=true;
+    if(S.quiz.score>=3){S.progress=Math.min(80,S.progress+20);toast('Quiz passed! Great work.');}
+  }
+  renderCourseDetail(document.getElementById('mainContent'));
+}
+function retakeQuiz(){
+  S.quiz={q:0,sel:null,answered:false,score:0,done:false};
+  renderCourseDetail(document.getElementById('mainContent'));
+}
+// ─── VIDEO TRACKING ENGINE ─────────────────────────────────────────────────
+const VID = { playing:false, elapsed:0, total:1440, timer:null }; // 1440s = 24min
+
+function startVideo(){
+  document.getElementById('vidOverlay').style.display='none';
+  VID.playing=true;
+  VID.timer=setInterval(tickVideo, 1000);
+  document.getElementById('vidToggle').textContent='⏸';
+  updateVidBadge();
+}
+
+function toggleVideoPlay(){
+  if(!VID.playing && VID.elapsed===0){ startVideo(); return; }
+  VID.playing=!VID.playing;
+  if(VID.playing){
+    VID.timer=setInterval(tickVideo,1000);
+    document.getElementById('vidToggle').textContent='⏸';
+  } else {
+    clearInterval(VID.timer);
+    document.getElementById('vidToggle').textContent='▶';
+  }
+  updateVidBadge();
+}
+
+function tickVideo(){
+  if(!VID.playing) return;
+  VID.elapsed=Math.min(VID.elapsed+1, VID.total);
+  const pct=VID.elapsed/VID.total*100;
+
+  const fill=document.getElementById('vidFill');
+  const timeEl=document.getElementById('vidTime');
+  if(fill) fill.style.width=pct+'%';
+  if(timeEl){
+    const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+    timeEl.textContent=`${fmt(VID.elapsed)} / 24:00`;
+  }
+  updateVidBadge();
+
+  // Auto-complete at 90%
+  if(pct>=90 && !S.videoWatched){
+    clearInterval(VID.timer);
+    VID.playing=false;
+    S.videoWatched=true;
+    S.progress=Math.min(S.progress+15,95);
+    toast('✓ Video complete — progress saved automatically!');
+    setTimeout(()=>renderCourseDetail(document.getElementById('mainContent')),1200);
+  }
+}
+
+function updateVidBadge(){
+  const badge=document.getElementById('vidBadge');
+  const note=document.getElementById('vidNote');
+  if(!badge) return;
+  const pct=Math.round(VID.elapsed/VID.total*100);
+  if(VID.playing){
+    badge.textContent=`▶ Watching… ${pct}%`;
+    badge.className='badge badge-blue';
+    if(note) note.textContent=pct<90?`Need ${90-pct}% more to unlock next module`:'Almost there!';
+  } else if(VID.elapsed>0){
+    badge.textContent=`⏸ Paused at ${pct}%`;
+    badge.className='badge badge-warn';
+    if(note) note.textContent='Resume to continue — do not close this page';
+  }
+}
+
+
+function reqSignoff(){
+  toast('Sign-off request sent to Sam Rivera!');
+  setTimeout(()=>{S.signedOff=true;S.progress=100;renderCourseDetail(document.getElementById('mainContent'));toast('✓ Sam Rivera approved your sign-off. Course complete!');},2500);
+}
+
+// ─── COMPLETED ─────────────────────────────────────────────────────────────
+function renderCompleted(c){
+  c.innerHTML=`
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>Course</th><th>Completed</th><th>Score</th><th>Signed Off By</th><th>Certificate</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:8px"><span>🔒</span><span style="font-weight:500">Security Fundamentals</span></div></td>
+          <td>Mar 20, 2026</td>
+          <td><span class="badge badge-success">88%</span></td>
+          <td>Sam Rivera</td>
+          <td><button class="btn btn-sm" onclick="toast('Certificate downloaded!')">📄 Download</button></td>
+        </tr>
+        ${S.signedOff?`<tr>
+          <td><div style="display:flex;align-items:center;gap:8px"><span>⚖️</span><span style="font-weight:500">Compliance & Ethics</span></div></td>
+          <td>Mar 27, 2026</td>
+          <td><span class="badge badge-success">${Math.round(S.quiz.score/QUIZ.length*100)}%</span></td>
+          <td>Sam Rivera</td>
+          <td><button class="btn btn-sm" onclick="toast('Certificate downloaded!')">📄 Download</button></td>
+        </tr>`:''}
+      </tbody>
+    </table>
+  </div>
+  <div class="empty">
+    <div class="empty-icon">🎓</div>
+    <div class="empty-title">Keep up the great work!</div>
+    <div style="font-size:13px">Complete more courses to earn additional certifications.</div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="go('my-courses')">Browse My Courses</button>
+  </div>`;
+}
+
+// ─── USER MANAGEMENT ───────────────────────────────────────────────────────
+function renderUsers(c){
+  const tr=document.getElementById('topbarRight');
+  tr.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Add User</button>`;
+  c.innerHTML=`
+  <div class="grid4 section-gap">
+    <div class="metric-card"><div class="metric-label">Total Users</div><div class="metric-value">${LEARNERS.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Active</div><div class="metric-value" style="color:var(--success)">${LEARNERS.filter(l=>l.account==='active').length}</div></div>
+    <div class="metric-card"><div class="metric-label">Inactive</div><div class="metric-value" style="color:var(--text3)">${LEARNERS.filter(l=>l.account==='inactive').length}</div></div>
+    <div class="metric-card"><div class="metric-label">Pending Invite</div><div class="metric-value" style="color:var(--warn)">2</div></div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input" style="max-width:260px"><input type="text" placeholder="Search by name or email..." id="userSearch" oninput="filterUsers(this.value)"></div>
+    <select style="width:auto" id="deptFilter" onchange="filterUsers()">
+      <option value="">All Departments</option>
+      <option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option>
+    </select>
+    <select style="width:auto" id="statusFilter" onchange="filterUsers()">
+      <option value="">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Job Title</th>
+          <th>Department</th>
+          <th>Manager</th>
+          <th>Start Date</th>
+          <th>Account</th>
+          <th>LMS Progress</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+        ${renderUserRows(LEARNERS)}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderUserRows(list){
+  return list.map((l,i)=>`
+  <tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div>
+          <div style="font-weight:500">${l.name}</div>
+          <div style="font-size:11px;color:var(--text3)">${l.email}</div>
+        </div>
+      </div>
+    </td>
+    <td style="color:var(--text2)">${l.title}</td>
+    <td><span class="badge badge-gray">${l.dept}</span></td>
+    <td style="font-size:13px;color:var(--text2)">${l.manager}</td>
+    <td style="font-size:12px;color:var(--text3)">${l.start}</td>
+    <td>
+      <span class="badge ${l.account==='active'?'badge-success':'badge-gray'}">
+        ${l.account==='active'?'Active':'Inactive'}
+      </span>
+    </td>
+    <td style="min-width:120px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="progress-bar" style="flex:1;margin:0"><div class="progress-fill ${l.prog===100?'green':l.prog>60?'':'amber'}" style="width:${l.prog}%"></div></div>
+        <span style="font-size:11px;color:var(--text2);min-width:28px">${l.prog}%</span>
+      </div>
+    </td>
+    <td>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="openUserModal('${l.name}')">Edit</button>
+        <button class="btn btn-sm" onclick="toast('Login invite resent to ${l.email}!')">Resend Invite</button>
+        <button class="btn btn-sm" style="color:${l.account==='active'?'var(--danger)':'var(--success)'};border-color:${l.account==='active'?'var(--danger-border)':'var(--success-border)'}"
+          onclick="toggleAccount('${l.name}',this)">
+          ${l.account==='active'?'Deactivate':'Activate'}
+        </button>
+      </div>
+    </td>
+  </tr>`).join('');
+}
+
+function filterUsers(val){
+  const search=(document.getElementById('userSearch')?.value||'').toLowerCase();
+  const dept=document.getElementById('deptFilter')?.value||'';
+  const status=document.getElementById('statusFilter')?.value||'';
+  const filtered=LEARNERS.filter(l=>{
+    const matchSearch=!search||l.name.toLowerCase().includes(search)||l.email.toLowerCase().includes(search);
+    const matchDept=!dept||l.dept===dept;
+    const matchStatus=!status||l.account===status;
+    return matchSearch&&matchDept&&matchStatus;
+  });
+  const tbody=document.getElementById('userTableBody');
+  if(tbody) tbody.innerHTML=renderUserRows(filtered);
+}
+
+function openUserModal(name){
+  const l=LEARNERS.find(x=>x.name===name);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="av av-lg" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+        <div>
+          <div style="font-size:17px;font-weight:600">${l.name}</div>
+          <span class="badge ${l.account==='active'?'badge-success':'badge-gray'}">${l.account==='active'?'Active':'Inactive'}</span>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab(this,'eu-info')">Profile</div>
+      <div class="tab" onclick="switchTab(this,'eu-courses')">Assigned Courses</div>
+      <div class="tab" onclick="switchTab(this,'eu-access')">Access & Security</div>
+    </div>
+
+    <div id="eu-info">
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" value="${l.name}"></div>
+        <div class="form-group"><label class="form-label">Email Address</label><input type="email" value="${l.email}"></div>
+      </div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Job Title</label><input type="text" value="${l.title}"></div>
+        <div class="form-group"><label class="form-label">Department</label>
+          <select>
+            ${['Finance', 'Human Resources', 'Marketing', 'Operations', 'Sales'].map(d=>`<option${d===l.dept?' selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Assigned Manager</label>
+          <select>
+            ${['Sam Rivera','Eleni Gagnon','Morgan Lee'].map(m=>`<option${m===l.manager?' selected':''}>${m}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Start / Hire Date</label><input type="date" value="${toDateInput(l.start)}" style="cursor:pointer"></div>
+      </div>
+      <div class="form-group"><label class="form-label">System Role</label>
+        <select>
+          <option>Learner</option>
+          <option>Manager</option>
+          <option>Admin / HR</option>
+          <option>Executive (View Only)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="eu-courses" style="display:none">
+      <div style="margin-bottom:12px;font-size:13px;color:var(--text2)">Manage which courses are assigned to this user.</div>
+      ${COURSES.map((co,i)=>`
+      <label style="display:flex;align-items:center;gap:10px;padding:9px 0;cursor:pointer;border-bottom:1px solid var(--border)">
+        <input type="checkbox" ${i<3?'checked':''}>
+        <div style="font-size:18px">${co.emoji}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${co.title}</div>
+          <div style="font-size:11px;color:var(--text3)">${co.cat} · Due ${co.due}</div>
+        </div>
+        <span class="badge ${i<3?'badge-blue':'badge-gray'}">${i<3?'Assigned':'Not Assigned'}</span>
+      </label>`).join('')}
+    </div>
+
+    <div id="eu-access" style="display:none">
+      <div class="callout callout-blue" style="margin-bottom:16px">
+        Last login: <strong>Mar 26, 2026 at 9:14 AM</strong> · IP 192.168.1.42
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account Status</label>
+        <select>
+          <option ${l.account==='active'?'selected':''}>Active</option>
+          <option ${l.account==='inactive'?'selected':''}>Inactive</option>
+          <option>Suspended</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <button class="btn" onclick="toast('Password reset email sent to ${l.email}!')">📧 Send Password Reset Email</button>
+        <button class="btn" onclick="toast('Login invitation resent to ${l.email}!')">🔁 Resend Login Invitation</button>
+        <button class="btn btn-danger" onclick="toast('${l.name} has been deactivated.');closeModal()">🚫 Deactivate Account</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="toast('Changes saved for ${l.name}!');closeModal()">Save Changes</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function openAddUserModal(){
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:17px;font-weight:600">Add New User</div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">First Name</label><input type="text" placeholder="e.g. Jamie"></div>
+      <div class="form-group"><label class="form-label">Last Name</label><input type="text" placeholder="e.g. Torres"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Work Email</label><input type="email" placeholder="jamie.torres@theabscompany.com"></div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Job Title</label><input type="text" placeholder="e.g. Sales Associate"></div>
+      <div class="form-group"><label class="form-label">Department</label>
+        <select><option value="">Select...</option>${['Finance', 'Human Resources', 'Marketing', 'Operations', 'Sales'].map(d=>`<option>${d}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Assigned Manager</label>
+        <select><option value="">Select...</option>${['Sam Rivera','Eleni Gagnon','Morgan Lee'].map(m=>`<option>${m}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Start / Hire Date</label><input type="date" style="cursor:pointer"></div>
+    </div>
+    <div class="form-group"><label class="form-label">System Role</label>
+      <select><option>Learner</option><option>Manager</option><option>Admin / HR</option><option>Executive (View Only)</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Auto-assign onboarding courses</label>
+      ${COURSES.slice(0,3).map(co=>`
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;font-size:13px">
+        <input type="checkbox" checked> ${co.emoji} ${co.title}
+      </label>`).join('')}
+    </div>
+    <div class="callout callout-blue" style="margin-bottom:16px">
+      An email invitation with login instructions will be sent automatically when you save.
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="toast('User added! Invitation sent.');closeModal()">Add User & Send Invite</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function toggleAccount(name, btn){
+  const l=LEARNERS.find(x=>x.name===name);
+  if(l){
+    l.account=l.account==='active'?'inactive':'active';
+    toast(`${l.name}'s account has been ${l.account==='active'?'activated':'deactivated'}.`);
+    renderPeople(document.getElementById('mainContent'));
+  }
+}
+
+
+// ─── PLAYBOOK (flat doc list + quiz to confirm) ────────────────────────────
+const PLAYBOOK_DOCS = [
+  {id:1, emoji:'🌴', title:'PTO & Leave Policy', category:'Human Resources', updated:'Jan 20, 2026',
+   updatedBy:'Eleni Gagnon', assignedTo:'all', status:'published', delegatedTo:null,
+   content:`Full-time employees accrue PTO at a rate of 15 days per year in the first two years, increasing to 20 days after year two. PTO requests must be submitted at least one week in advance and approved by your manager. Unused PTO rolls over up to a maximum of 5 days per year.\n\nSick leave: Up to 8 sick days per year at full pay. Sick leave does not roll over. If out sick for more than 3 consecutive days, notify HR and your manager.\n\nParental leave: Primary caregivers receive 12 weeks fully paid. Secondary caregivers receive 4 weeks. Leave must be taken within 12 months of birth, adoption, or foster placement.`,
+   quiz:{q:'How far in advance must PTO requests be submitted?',opts:['Same day','At least one week','48 hours','No requirement'],correct:1},
+   completedBy:['Marcus Webb']},
+  {id:2, emoji:'💊', title:'Benefits Overview', category:'Human Resources', updated:'Feb 1, 2026',
+   updatedBy:'Eleni Gagnon', assignedTo:'all', status:'published', delegatedTo:null,
+   content:`Health Insurance: The company covers 80% of employee premiums and 50% of dependent premiums. Open enrollment each November, effective January 1st. New hires may enroll within 30 days of start date.\n\n401(k): Company matches 100% of contributions up to 4% of salary. Immediately eligible to contribute; match vests over 3 years. Both traditional and Roth options available.\n\nWellness: $75/month wellness stipend for gym memberships, fitness classes, or wellness apps. Employee Assistance Program (EAP) includes free counseling, legal, and financial planning resources.`,
+   quiz:{q:'What percentage of your health insurance premium does the company cover?',opts:['50%','70%','80%','100%'],correct:2},
+   completedBy:[]},
+  {id:3, emoji:'⚖️', title:'Code of Conduct', category:'Legal & Compliance', updated:'Mar 15, 2026',
+   updatedBy:'Eleni Gagnon', assignedTo:'all', status:'published', delegatedTo:null,
+   content:`All employees are expected to act with integrity, respect colleagues, and represent the company professionally. This includes honest communication, respecting confidentiality, avoiding conflicts of interest, and complying with all company policies.\n\nAnti-Harassment: Zero tolerance for harassment of any kind — verbal, physical, or digital — toward employees, contractors, clients, or vendors. Report immediately to HR or your manager.\n\nReporting Concerns: Use your direct manager, HR, or the anonymous ethics hotline. All reports are investigated confidentially. Retaliation is strictly prohibited.`,
+   quiz:{q:'What is the company\'s policy on workplace harassment?',opts:['Case by case basis','Zero tolerance','Only physical harassment is prohibited','Managers decide'],correct:1},
+   completedBy:['Marcus Webb']},
+  {id:4, emoji:'💳', title:'Expense Reimbursement', category:'Finance', updated:'Feb 5, 2026',
+   updatedBy:'Eleni Gagnon', assignedTo:'all', status:'published', delegatedTo:null,
+   content:`Submit all business expenses within 30 days via the expense portal. Attach original receipts for expenses over $25. Approved expenses are processed within 5 business days.\n\nReimbursable: Client meals (up to $75/person), coach class travel for flights under 4 hours, approved software, and business supplies.\n\nNot reimbursable: Personal expenses, alcohol above 20% of a meal receipt, unapproved travel upgrades, or late submissions.`,
+   quiz:{q:'What is the maximum reimbursable amount per person for client meals?',opts:['$50','$75','$100','No limit'],correct:1},
+   completedBy:[]},
+  {id:5, emoji:'🏠', title:'Remote Work Policy', category:'Operations', updated:'Mar 1, 2026',
+   updatedBy:'Eleni Gagnon', assignedTo:'all', status:'published', delegatedTo:null,
+   content:`Remote work is available for eligible roles with manager approval. Remote employees must be available during core hours (9am–3pm local time) and maintain a professional workspace.\n\nEquipment: The company provides a laptop and necessary peripherals for remote work. Personal equipment must meet security standards.\n\nSecurity: All remote work must use company-approved VPN. Public Wi-Fi is prohibited for accessing sensitive systems without VPN.`,
+   quiz:{q:'What are the required core hours for remote employees?',opts:['8am–5pm','9am–3pm','10am–2pm','Flexible — no requirement'],correct:1},
+   completedBy:[]},
+  {id:6, emoji:'📋', title:'Sales Process SOP', category:'Sales', updated:'Mar 20, 2026',
+   updatedBy:null, assignedTo:'Sales', status:'draft', delegatedTo:'Marcus Webb',
+   content:'',
+   quiz:null,
+   completedBy:[]},
+];
+
+S.activeDocId = null;
+S.docQuizState = {};
+
+function renderPlaybook(c){
+  const isAdmin=S.role==='admin';
+  const tr=document.getElementById('topbarRight');
+  if(isAdmin) tr.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openCreateDoc()">+ New Document</button>`;
+
+  const docs = isAdmin ? PLAYBOOK_DOCS : PLAYBOOK_DOCS.filter(d=>d.status==='published');
+  const cats = [...new Set(docs.map(d=>d.category))].sort();
+  const myCompleted = docs.filter(d=>d.completedBy.includes('Alex Chen'));
+  const myPending = docs.filter(d=>!d.completedBy.includes('Alex Chen')&&d.status==='published');
+
+  c.innerHTML=`
+  <div class="grid4 section-gap">
+    <div class="metric-card"><div class="metric-label">Total Docs</div><div class="metric-value">${docs.filter(d=>d.status==='published').length}</div></div>
+    <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--success)">${myCompleted.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Pending</div><div class="metric-value" style="color:var(--warn)">${myPending.length}</div></div>
+    ${isAdmin?`<div class="metric-card"><div class="metric-label">Drafts</div><div class="metric-value" style="color:var(--text3)">${PLAYBOOK_DOCS.filter(d=>d.status==='draft').length}</div></div>`
+    :`<div class="metric-card"><div class="metric-label">Complete</div><div class="metric-value">${myCompleted.length===docs.filter(d=>d.status==='published').length?'✓ All done':'Keep going'}</div></div>`}
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input" style="max-width:280px"><input type="text" placeholder="Search documents..." oninput="filterDocs(this.value)"></div>
+    <select style="width:auto" id="docCatFilter" onchange="filterDocs()">
+      <option value="">All Categories</option>
+      ${cats.map(cat=>`<option>${cat}</option>`).join('')}
+    </select>
+    ${isAdmin?`<select style="width:auto" id="docStatusFilter" onchange="filterDocs()">
+      <option value="">All Status</option><option>published</option><option>draft</option>
+    </select>`:''}
+  </div>
+
+  <div id="docList">${renderDocRows(docs)}</div>`;
+}
+
+function renderDocRows(docs){
+  if(!docs.length) return `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No documents found.</div></div>`;
+  const isAdmin=S.role==='admin';
+  return docs.map(d=>{
+    const done=d.completedBy.includes('Alex Chen');
+    const isDraft=d.status==='draft';
+    return `<div class="card" style="margin-bottom:10px;border-left:3px solid ${done?'var(--success-border)':isDraft?'var(--border2)':'var(--border)'}">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="font-size:24px">${d.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
+            <div style="font-size:14px;font-weight:600">${d.title}</div>
+            <span class="badge badge-gray">${d.category}</span>
+            ${isDraft?`<span class="badge badge-warn">Draft${d.delegatedTo?' — assigned to '+d.delegatedTo:''}</span>`:''}
+            ${done?`<span class="badge badge-success">✓ Completed</span>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Updated ${d.updated}${d.updatedBy?' by '+d.updatedBy:''}${d.delegatedTo&&!d.updatedBy?' · Awaiting content from '+d.delegatedTo:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${!isDraft?`<button class="btn btn-sm ${done?'':'btn-primary'}" onclick="openDocReader(${d.id})">${done?'Review':'Read & Complete'}</button>`:''}
+          ${isAdmin?`
+            <button class="btn btn-sm" onclick="openEditDoc(${d.id})">✏️ Edit</button>
+            <button class="btn btn-sm" onclick="openDelegateDoc(${d.id})">👤 Delegate</button>`:``}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterDocs(val){
+  const search=(val||'').toLowerCase();
+  const cat=document.getElementById('docCatFilter')?.value||'';
+  const status=document.getElementById('docStatusFilter')?.value||'';
+  const isAdmin=S.role==='admin';
+  const docs=(isAdmin?PLAYBOOK_DOCS:PLAYBOOK_DOCS.filter(d=>d.status==='published')).filter(d=>{
+    const matchS=!search||d.title.toLowerCase().includes(search)||d.category.toLowerCase().includes(search);
+    const matchC=!cat||d.category===cat;
+    const matchSt=!status||d.status===status;
+    return matchS&&matchC&&matchSt;
+  });
+  const el=document.getElementById('docList');
+  if(el) el.innerHTML=renderDocRows(docs);
+}
+
+function openDocReader(id){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===id);
+  if(!d||!d.content) return;
+  if(!S.docQuizState[id]) S.docQuizState[id]={answered:false,selected:null,correct:false,attempts:0,ready:false};
+  const qs=S.docQuizState[id];
+  const done=d.completedBy.includes('Alex Chen');
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:28px">${d.emoji}</div>
+        <div>
+          <div style="font-size:17px;font-weight:600">${d.title}</div>
+          <div style="display:flex;gap:6px;margin-top:3px">
+            <span class="badge badge-gray">${d.category}</span>
+            <span style="font-size:11px;color:var(--text3)">Updated ${d.updated}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="expand-btn" onclick="toggleModalExpand(this)">⤢ Expand</button>
+        <button class="btn btn-sm" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;line-height:1.9;font-size:13px;white-space:pre-line">${d.content}</div>
+
+    <!-- Next button — shows quiz when clicked -->
+    ${!qs.ready && !done && d.quiz ? `
+    <div style="text-align:center;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="revealDocQuiz(${id})">I've read this — Next →</button>
+    </div>` : ''}
+
+    <!-- Quiz (hidden until Next is clicked) -->
+    <div id="quizSection" style="display:${qs.ready||done?'block':'none'}">
+      ${d.quiz ? `
+      <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">Quick Check</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:14px">${d.quiz.q}</div>
+        ${d.quiz.opts.map((o,i)=>`
+        <div onclick="${qs.correct?'':'selectDocAnswer('+id+','+i+')'}"
+          style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid;border-radius:var(--radius);margin-bottom:8px;
+          cursor:${qs.correct?'default':'pointer'};transition:all 0.12s;
+          border-color:${qs.answered?(i===d.quiz.correct?'var(--success-border)':qs.selected===i?'var(--danger-border)':'var(--border)'):(qs.selected===i?'var(--accent)':'var(--border2)')};
+          background:${qs.answered?(i===d.quiz.correct?'var(--success-bg)':qs.selected===i?'var(--danger-bg)':'transparent'):(qs.selected===i?'var(--accent-bg)':'transparent')}">
+          <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;
+            border-color:${qs.answered?(i===d.quiz.correct?'var(--success)':qs.selected===i?'var(--danger)':'var(--border2)'):'currentColor'};
+            color:${qs.answered?(i===d.quiz.correct?'var(--success)':qs.selected===i?'var(--danger)':'var(--text3)'):'inherit'}">
+            ${qs.answered&&i===d.quiz.correct?'✓':qs.answered&&qs.selected===i&&i!==d.quiz.correct?'✕':String.fromCharCode(65+i)}
+          </div>
+          <span style="font-size:13px">${o}</span>
+        </div>`).join('')}
+        ${qs.answered?`<div class="callout ${qs.correct?'callout-success':'callout-warn'}" style="margin-top:10px">
+          ${qs.correct
+            ?'✓ Correct! Document marked as complete.'
+            :'Not quite — give it another try!'}
+        </div>`:''}
+        ${qs.answered&&!qs.correct?`<button class="btn btn-sm" style="margin-top:8px" onclick="retryDocQuiz(${id})">↺ Try Again</button>`:''}
+      </div>` : ''}
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="toast('Downloaded as PDF.')">📄 Download PDF</button>
+      <button class="btn" onclick="closeModal()">Close</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function revealDocQuiz(id){
+  S.docQuizState[id].ready=true;
+  openDocReader(id);
+}
+
+function retryDocQuiz(id){
+  S.docQuizState[id].answered=false;
+  S.docQuizState[id].selected=null;
+  openDocReader(id);
+}
+
+function selectDocAnswer(docId, idx){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===docId);
+  if(!d||!d.quiz) return;
+  const qs=S.docQuizState[docId];
+  if(qs.correct) return;
+  const correct=idx===d.quiz.correct;
+  qs.answered=true;
+  qs.selected=idx;
+  qs.correct=correct;
+  if(correct&&!d.completedBy.includes('Alex Chen')){
+    d.completedBy.push('Alex Chen');
+    setTimeout(()=>{
+      toast(`✓ "${d.title}" completed!`);
+      closeModal();
+      renderPlaybook(document.getElementById('mainContent'));
+    },1200);
+  }
+  openDocReader(docId);
+}
+
+function openEditDoc(id){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===id);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:17px;font-weight:600">Edit Document</div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Title</label><input type="text" id="editDocTitle" value="${d.title}"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select id="editDocCat">${['Human Resources','Legal & Compliance','Finance','Operations','Sales','Marketing','IT & Security'].map(c=>`<option${c===d.category?' selected':''}>${c}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Content</label>
+      <textarea id="editDocContent" rows="10" style="line-height:1.7">${d.content}</textarea>
+    </div>
+    <div class="form-group"><label class="form-label">Quick Check Question</label>
+      <input type="text" id="editDocQ" value="${d.quiz?.q||''}" placeholder="e.g. How many PTO days do you get per year?">
+    </div>
+    <div class="form-group"><label class="form-label">Answer Options (mark correct with ✓)</label>
+      ${(d.quiz?.opts||['','','','']).map((o,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <input type="radio" name="editCorrect" ${d.quiz?.correct===i?'checked':''} style="width:auto">
+        <input type="text" value="${o}" id="editOpt${i}" placeholder="Option ${String.fromCharCode(65+i)}" style="flex:1">
+      </div>`).join('')}
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Select the radio button next to the correct answer.</div>
+    </div>
+    <div class="form-group"><label class="form-label">Status</label>
+      <select id="editDocStatus"><option${d.status==='published'?' selected':''}>published</option><option${d.status==='draft'?' selected':''}>draft</option></select>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveEditDoc(${id})">Save Changes</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function saveEditDoc(id){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===id);
+  d.title=document.getElementById('editDocTitle')?.value||d.title;
+  d.category=document.getElementById('editDocCat')?.value||d.category;
+  d.content=document.getElementById('editDocContent')?.value||d.content;
+  d.status=document.getElementById('editDocStatus')?.value||d.status;
+  const q=document.getElementById('editDocQ')?.value;
+  const opts=[0,1,2,3].map(i=>document.getElementById('editOpt'+i)?.value||'');
+  const correct=[...document.querySelectorAll('input[name=editCorrect]')].findIndex(r=>r.checked);
+  if(q&&opts.every(o=>o)) d.quiz={q,opts,correct:correct>=0?correct:0};
+  d.updated=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  d.updatedBy='Eleni Gagnon';
+  d.delegatedTo=null;
+  toast('Document saved!');
+  closeModal();
+  renderPlaybook(document.getElementById('mainContent'));
+}
+
+function openDelegateDoc(id){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===id);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div>
+        <div style="font-size:17px;font-weight:600">Delegate Document</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${d.title}</div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="callout callout-blue" style="margin-bottom:16px">
+      Assign this document to a team member to write the content. They will receive a notification with instructions.
+    </div>
+    <div class="form-group"><label class="form-label">Assign to</label>
+      <select id="delegateTo">
+        <option value="">Select a team member...</option>
+        ${LEARNERS.filter(l=>l.account==='active').map(l=>`<option value="${l.name}">${l.name} — ${l.title}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Instructions (optional)</label>
+      <textarea rows="3" placeholder="e.g. Please write the SOP for our sales outreach process. Include steps, tools used, and tips for new reps."></textarea>
+    </div>
+    <div class="form-group"><label class="form-label">Due Date</label>
+      <input type="date" style="cursor:pointer">
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveDelegate(${id})">Assign & Notify</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function saveDelegate(id){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===id);
+  const person=document.getElementById('delegateTo')?.value;
+  if(!person){toast('Please select a team member.');return;}
+  d.delegatedTo=person;
+  d.status='draft';
+  toast(`✓ Assigned to ${person}. They've been notified to write this document.`);
+  closeModal();
+  renderPlaybook(document.getElementById('mainContent'));
+}
+
+function openCreateDoc(){
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:17px;font-weight:600">New Document</div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Title</label><input type="text" id="newDocTitle" placeholder="e.g. Onboarding Checklist"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select id="newDocCat">${['Human Resources','Legal & Compliance','Finance','Operations','Sales','Marketing','IT & Security'].map(c=>`<option>${c}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Icon</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="docEmojiPicker">
+        ${['📋','🌴','💊','⚖️','💳','🏠','🛡️','📊','🎯','🤝','💡','📖'].map(e=>`
+        <button class="btn" style="font-size:18px;padding:5px 9px" onclick="pickDocEmoji(this,'${e}')">${e}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Write content or delegate?</label>
+      <div style="display:flex;gap:10px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="docMode" value="write" checked onchange="toggleDocMode(this.value)"> Write now</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="docMode" value="delegate" onchange="toggleDocMode(this.value)"> Delegate to someone</label>
+      </div>
+    </div>
+    <div id="docWriteMode">
+      <div class="form-group"><label class="form-label">Content</label><textarea id="newDocContent" rows="8" placeholder="Write the document content here..."></textarea></div>
+      <div class="form-group"><label class="form-label">Quick Check Question</label><input type="text" id="newDocQ" placeholder="e.g. What is the PTO accrual rate?"></div>
+      ${['A','B','C','D'].map((l,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <input type="radio" name="newCorrect" style="width:auto">
+        <input type="text" id="newOpt${i}" placeholder="Answer ${l}" style="flex:1">
+      </div>`).join('')}
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Select the radio button next to the correct answer.</div>
+    </div>
+    <div id="docDelegateMode" style="display:none">
+      <div class="form-group"><label class="form-label">Assign to</label>
+        <select id="newDelegateTo"><option value="">Select...</option>
+          ${LEARNERS.filter(l=>l.account==='active').map(l=>`<option>${l.name} — ${l.title}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Instructions</label><textarea rows="3" placeholder="Describe what they should write..."></textarea></div>
+      <div class="form-group"><label class="form-label">Due Date</label><input type="date" style="cursor:pointer"></div>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveNewDoc()">Publish</button>
+      <button class="btn" onclick="saveNewDocDraft()">Save Draft</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+let _docEmoji='📋';
+function pickDocEmoji(btn,e){
+  _docEmoji=e;
+  btn.closest('#docEmojiPicker').querySelectorAll('.btn').forEach(b=>b.style.background='');
+  btn.style.background='var(--accent-bg)';
+}
+function toggleDocMode(val){
+  document.getElementById('docWriteMode').style.display=val==='write'?'block':'none';
+  document.getElementById('docDelegateMode').style.display=val==='delegate'?'block':'none';
+}
+function saveNewDoc(){
+  const title=document.getElementById('newDocTitle')?.value.trim();
+  if(!title){toast('Please enter a title.');return;}
+  const opts=[0,1,2,3].map(i=>document.getElementById('newOpt'+i)?.value||'Option '+(i+1));
+  const correct=[...document.querySelectorAll('input[name=newCorrect]')].findIndex(r=>r.checked);
+  const q=document.getElementById('newDocQ')?.value;
+  PLAYBOOK_DOCS.push({
+    id:Date.now(),emoji:_docEmoji,title,
+    category:document.getElementById('newDocCat')?.value||'General',
+    updated:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    updatedBy:'Eleni Gagnon',assignedTo:'all',status:'published',delegatedTo:null,
+    content:document.getElementById('newDocContent')?.value||'',
+    quiz:q?{q,opts,correct:correct>=0?correct:0}:null,
+    completedBy:[]
+  });
+  toast('Document published!');
+  closeModal();
+  renderPlaybook(document.getElementById('mainContent'));
+}
+function saveNewDocDraft(){
+  toast('Saved as draft.');
+  closeModal();
+}
+
+function renderPlaybookCreate(c){ go('playbook'); }
+function addTopicBuilder(){}
+
+
+
+const POLICIES = [
+  {id:1, title:'PTO & Leave Policy', category:'Human Resources', updated:'Jan 20, 2026',
+   icon:'🌴', summary:'Vacation, sick days, parental leave, bereavement, and how to request time off.',
+   tags:['PTO','Leave','Vacation','Time Off']},
+  {id:2, title:'Benefits Overview', category:'Human Resources', updated:'Feb 1, 2026',
+   icon:'💊', summary:'Health, dental, vision, 401k, wellness stipend, and employee assistance program details.',
+   tags:['Benefits','Health','Insurance','401k']},
+  {id:3, title:'Code of Conduct', category:'Legal & Compliance', updated:'Mar 15, 2026',
+   icon:'⚖️', summary:'Expected workplace behavior, ethical standards, and how to report concerns.',
+   tags:['Conduct','Ethics','Compliance']},
+  {id:4, title:'Expense Reimbursement', category:'Finance', updated:'Feb 5, 2026',
+   icon:'💳', summary:'How to submit business expenses, approval process, and reimbursement timelines.',
+   tags:['Expenses','Reimbursement','Finance']},
+  {id:5, title:'Remote Work Policy', category:'Operations', updated:'Mar 1, 2026',
+   icon:'🏠', summary:'Guidelines for working remotely, equipment, availability expectations, and home office setup.',
+   tags:['Remote','WFH','Work From Home']},
+  {id:6, title:'Health & Safety', category:'Operations', updated:'Dec 10, 2025',
+   icon:'🛡️', summary:'Workplace safety procedures, emergency protocols, and incident reporting.',
+   tags:['Safety','Emergency','Health']},
+  {id:7, title:'Data Privacy Policy', category:'IT & Security', updated:'Mar 10, 2026',
+   icon:'🔒', summary:'How to handle employee and customer data, device usage, and breach reporting.',
+   tags:['Privacy','Data','Security']},
+  {id:8, title:'Performance Review Process', category:'Human Resources', updated:'Jan 5, 2026',
+   icon:'📊', summary:'Review cycles, how you are evaluated, goal setting, and promotion criteria.',
+   tags:['Performance','Reviews','Goals']},
+];
+
+function renderPolicies(c){
+  c.innerHTML=`
+  <div class="search-bar" style="margin-bottom:20px">
+    <div class="search-input" style="max-width:280px">
+      <input type="text" placeholder="Search policies..." id="policySearch" oninput="filterPolicies(this.value)">
+    </div>
+    <select style="width:auto" id="policyCatFilter" onchange="filterPolicies()">
+      <option value="">All Categories</option>
+      <option>Human Resources</option>
+      <option>Legal & Compliance</option>
+      <option>Finance</option>
+      <option>Operations</option>
+      <option>IT & Security</option>
+    </select>
+  </div>
+  <div id="policyGrid">
+    ${renderPolicyCards(POLICIES)}
+  </div>`;
+}
+
+function renderPolicyCards(list){
+  if(!list.length) return `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No policies match your search.</div></div>`;
+  // group by category
+  const cats=[...new Set(list.map(p=>p.category))].sort();
+  return cats.map(cat=>{
+    const items=list.filter(p=>p.category===cat);
+    return `<div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${cat}</div>
+      <div class="grid2">
+        ${items.map(p=>`
+        <div class="card" style="cursor:pointer;transition:all 0.15s" onclick="openPolicyView(${p.id})"
+          onmouseover="this.style.borderColor='var(--border2)';this.style.transform='translateY(-1px)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+          <div style="display:flex;align-items:start;gap:12px">
+            <div style="font-size:24px;flex-shrink:0">${p.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.title}</div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.5">${p.summary}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:var(--text3)">Updated ${p.updated}</span>
+                <span style="font-size:11px;color:var(--accent);font-weight:500">View →</span>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterPolicies(val){
+  const search=(val||document.getElementById('policySearch')?.value||'').toLowerCase();
+  const cat=document.getElementById('policyCatFilter')?.value||'';
+  const filtered=POLICIES.filter(p=>{
+    const matchS=!search||p.title.toLowerCase().includes(search)||p.summary.toLowerCase().includes(search)||p.tags.some(t=>t.toLowerCase().includes(search));
+    const matchC=!cat||p.category===cat;
+    return matchS&&matchC;
+  });
+  const grid=document.getElementById('policyGrid');
+  if(grid) grid.innerHTML=renderPolicyCards(filtered);
+}
+
+function openPolicyView(id){
+  const p=POLICIES.find(x=>x.id===id);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:32px">${p.icon}</div>
+        <div>
+          <div style="font-size:17px;font-weight:600;margin-bottom:3px">${p.title}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-gray">${p.category}</span>
+            <span style="font-size:11px;color:var(--text3);display:flex;align-items:center">Updated ${p.updated}</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;min-height:200px">
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px">Summary</div>
+      <p style="font-size:13px;line-height:1.8;margin-bottom:12px">${p.summary}</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.8">Full policy content, detailed guidelines, and any attachments will appear here in the live version. Contact HR if you have any questions about this policy.</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="toast('Policy downloaded as PDF.')">📄 Download PDF</button>
+      <button class="btn" onclick="toast('Link copied to clipboard!')">🔗 Copy Link</button>
+      <button class="btn" onclick="closeModal()">Close</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+
+
+function toast(msg){
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.className='notif-ok';n.style.display='block';
+  setTimeout(()=>n.style.display='none',3200);
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+function toggleModalExpand(btn){
+  const modal=document.getElementById('modalContent');
+  const isExpanded=modal.classList.toggle('expanded');
+  btn.textContent=isExpanded?'⤡ Collapse':'⤢ Expand';
+}
+
+function showCatDesc(name){
+  const cat=CATS.find(c=>c.name===name);
+  const el=document.getElementById('catDescPreview');
+  if(el&&cat) el.textContent=cat.desc;
+}
+
+function toDateInput(str){
+  // Convert "Mar 10, 2026" → "2026-03-10" for input[type=date]
+  if(!str) return '';
+  const d=new Date(str);
+  if(isNaN(d)) return '';
+  return d.toISOString().split('T')[0];
+}
+
+// Style date inputs to match the rest of the form
+const dateStyle=document.createElement('style');
+dateStyle.textContent=`
+  input[type=date]{color-scheme:light;cursor:pointer}
+  input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:0.6;margin-left:4px}
+  input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
+`;
+document.head.appendChild(dateStyle);
+
+// ─── COLUMN RESIZE ENGINE ──────────────────────────────────────────────────
+function makeTableResizable(table){
+  if(!table) return;
+  const ths=table.querySelectorAll('th');
+  // set initial widths from rendered layout
+  ths.forEach(th=>{
+    if(!th.style.width) th.style.width=th.offsetWidth+'px';
+    // remove existing handles
+    th.querySelectorAll('.col-resize').forEach(h=>h.remove());
+    // add handle
+    const handle=document.createElement('div');
+    handle.className='col-resize';
+    handle.addEventListener('mousedown', startResize);
+    th.appendChild(handle);
+  });
+}
+
+let _resizeTh=null, _resizeStartX=0, _resizeStartW=0;
+
+function startResize(e){
+  e.preventDefault();
+  e.stopPropagation();
+  _resizeTh=e.target.closest('th');
+  _resizeStartX=e.clientX;
+  _resizeStartW=_resizeTh.offsetWidth;
+  _resizeTh.classList.add('resizing');
+  e.target.classList.add('dragging');
+  document.addEventListener('mousemove', doResize);
+  document.addEventListener('mouseup', stopResize);
+}
+
+function doResize(e){
+  if(!_resizeTh) return;
+  const newW=Math.max(60, _resizeStartW+(e.clientX-_resizeStartX));
+  _resizeTh.style.width=newW+'px';
+}
+
+function stopResize(){
+  if(_resizeTh){
+    _resizeTh.classList.remove('resizing');
+    _resizeTh.querySelectorAll('.col-resize').forEach(h=>h.classList.remove('dragging'));
+    _resizeTh=null;
+  }
+  document.removeEventListener('mousemove', doResize);
+  document.removeEventListener('mouseup', stopResize);
+}
+
+// auto-apply resizable to any table after render
+const _origGo=go;
+function initResizableTables(){
+  setTimeout(()=>{
+    document.querySelectorAll('table').forEach(makeTableResizable);
+  }, 50);
+}
+
+// patch renderPeople, renderSignoffs, renderReports to init resize after render
+const _origRenderPeople=renderPeople;
+renderPeople=function(c){_origRenderPeople(c);initResizableTables();};
+const _origRenderSignoffs=renderSignoffs;
+renderSignoffs=function(c){_origRenderSignoffs(c);initResizableTables();};
+const _origRenderReports=renderReports;
+renderReports=function(c){_origRenderReports(c);initResizableTables();};
+const _origRenderCompleted=renderCompleted;
+renderCompleted=function(c){_origRenderCompleted(c);initResizableTables();};
+
+switchRole('admin');
+</script>
+</body>
+</html>
