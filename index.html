@@ -349,14 +349,16 @@ const S = {
   progress:35,
   signedOff:false,
   activeCourseId:7,
+  quizReady:false,
+  dismissedAnnouncements:[],
   courseDrafts:{}
 };
 
 const USERS = {
-  admin:{name:'Eleni Gagnon',initials:'EG',role:'HR Administrator',avBg:'#dbeafe',avCol:'#1a4fa0'},
-  manager:{name:'Sam Rivera',initials:'SR',role:'Team Manager',avBg:'#e8f5e3',avCol:'#2d6a1f'},
-  learner:{name:'Alex Chen',initials:'AC',role:'New Hire — Week 1',avBg:'#fef3dc',avCol:'#8a5a00'},
-  executive:{name:'Morgan Lee',initials:'ML',role:'VP Operations',avBg:'#fdeaea',avCol:'#8a1f1f'},
+  admin:{name:'Eleni Gagnon',initials:'EG',role:'COO / HR Administrator',avBg:'#dbeafe',avCol:'#1a4fa0'},
+  manager:{name:'Sean Kirby',initials:'SK',role:'VP of Sales',avBg:'#faeeda',avCol:'#8a5a00'},
+  learner:{name:'Kristin Harrington',initials:'KH',role:'Sales Manager',avBg:'#fef3dc',avCol:'#8a5a00'},
+  executive:{name:'Michael Ritter',initials:'MR',role:'President',avBg:'#fce4ec',avCol:'#c62828'},
 };
 
 const COURSES = [
@@ -370,13 +372,24 @@ const COURSES = [
 ];
 
 const LEARNERS = [
-  {name:'Alex Chen',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',dept:'Sales',title:'Sales Associate',email:'alex.chen@theabscompany.com',manager:'Sam Rivera',start:'Mar 10, 2026',prog:35,overdue:1,status:'in-progress',account:'active',assignedCourses:[7,1,2,3]},
-  {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',dept:'Marketing',title:'Marketing Manager',email:'priya.patel@theabscompany.com',manager:'Sam Rivera',start:'Mar 3, 2026',prog:80,overdue:0,status:'in-progress',account:'active',assignedCourses:[7,1,2,3]},
-  {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',dept:'Sales',title:'Sales Representative',email:'marcus.webb@theabscompany.com',manager:'Eleni Gagnon',start:'Feb 17, 2026',prog:100,overdue:0,status:'complete',account:'active',assignedCourses:[7,1,2,3]},
-  {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',dept:'Marketing',title:'Marketing Coordinator',email:'sofia.marin@theabscompany.com',manager:'Sam Rivera',start:'Mar 17, 2026',prog:15,overdue:2,status:'in-progress',account:'active',assignedCourses:[7,1,2,3]},
-  {name:'James Okafor',ini:'JO',bg:'#fdeaea',tc:'#8a1f1f',dept:'Finance',title:'Finance Analyst',email:'james.okafor@theabscompany.com',manager:'Morgan Lee',start:'Feb 24, 2026',prog:60,overdue:0,status:'in-progress',account:'active',assignedCourses:[7,1,2,3]},
-  {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',dept:'Operations',title:'Operations Analyst',email:'lei.zhang@theabscompany.com',manager:'Morgan Lee',start:'Mar 3, 2026',prog:45,overdue:1,status:'in-progress',account:'active',assignedCourses:[7,1,2,3]},
-  {name:'Dana Reyes',ini:'DR',bg:'#fdeaea',tc:'#8a1f1f',dept:'Human Resources',title:'HR Coordinator',email:'dana.reyes@theabscompany.com',manager:'Eleni Gagnon',start:'Jan 15, 2026',prog:0,overdue:0,status:'not-started',account:'inactive',assignedCourses:[7]},
+  {name:'Eleni Gagnon',ini:'EG',bg:'#dbeafe',tc:'#1a4fa0',dept:'Operations',title:'COO',email:'eleni@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Sean Gagnon',ini:'SG',bg:'#e8f5e3',tc:'#2d6a1f',dept:'Sales',title:'CEO',email:'sean@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Joyce Granville',ini:'JG',bg:'#f0edfe',tc:'#4a38b0',dept:'Operations',title:'Operations Specialist',email:'joyce@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Kristin Harrington',ini:'KH',bg:'#fef3dc',tc:'#8a5a00',dept:'Sales',title:'Sales Manager',email:'kristin@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Kim Healey',ini:'KH',bg:'#fdeaea',tc:'#8a1f1f',dept:'Operations',title:'Vice President',email:'kim@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Ryan Healey',ini:'RH',bg:'#e1f5ee',tc:'#0f6e56',dept:'Sales',title:'Director of Key Accounts',email:'ryan@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'DJ Hoffman',ini:'DH',bg:'#e8f0fd',tc:'#185FA5',dept:'Operations',title:'Customer Experience Manager',email:'dj@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Sean Kirby',ini:'SK',bg:'#faeeda',tc:'#8a5a00',dept:'Sales',title:'VP of Sales',email:'skirby@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Alexia Petrakos',ini:'AP',bg:'#eaf3de',tc:'#3b6d11',dept:'Marketing',title:'Digital Operations Manager',email:'alexia@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Cynthia Ramos',ini:'CR',bg:'#faece7',tc:'#993c1d',dept:'Marketing',title:'VP of Marketing',email:'cindy@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Joseph Ramos',ini:'JR',bg:'#f0ede8',tc:'#5a4a3a',dept:'Marketing',title:'Graphic Designer',email:'joseph@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Kevin Ramos',ini:'KR',bg:'#e8eaf6',tc:'#3949ab',dept:'Marketing',title:'Director of E-Commerce',email:'kevin@theabscompany.com',manager:'Cynthia Ramos',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Michael Ritter',ini:'MR',bg:'#fce4ec',tc:'#c62828',dept:'Sales',title:'President',email:'michael@theabscompany.com',manager:'Sean Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Josh Brand',ini:'JB',bg:'#e0f7fa',tc:'#00838f',dept:'Sales',title:'Director of International Sales',email:'josh@theabscompany.com',manager:'Sean Kirby',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Racquel Pagaduan',ini:'RP',bg:'#f3e5f5',tc:'#7b1fa2',dept:'Operations',title:'Operations Coordinator',email:'racquel@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Madelyn Racraquin',ini:'MR',bg:'#fff8e1',tc:'#b45309',dept:'Operations',title:'Sales Coordinator',email:'madelyn@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Denise Grace Hernandez',ini:'DH',bg:'#e8f5e9',tc:'#2e7d32',dept:'Operations',title:'Operations Coordinator',email:'denise@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
+  {name:'Jhoysan Semilla',ini:'JS',bg:'#fbe9e7',tc:'#bf360c',dept:'Operations',title:'Sales Coordinator',email:'jhoysan@theabscompany.com',manager:'Eleni Gagnon',start:'Apr 1, 2026',prog:0,overdue:0,status:'not-started',account:'active',assignedCourses:[7]},
 ];
 
 const QUIZ = [
@@ -403,20 +416,20 @@ const CATS = [
 const NAV = {
   admin:[
     {icon:'📊',label:'Dashboard',page:'dashboard'},
-    {icon:'📚',label:'Course Library',page:'courses'},
+    {icon:'📢',label:'Announcements',page:'announcements'},
+    {icon:'🗂️',label:'Course Library',page:'courses'},
     {icon:'➕',label:'Create Course',page:'create',sub:true},
-    {icon:'📖',label:'Playbook',page:'playbook'},
-    {icon:'➕',label:'Add Subject',page:'playbook-create',sub:true},
     {icon:'👤',label:'People',page:'people'},
-    {icon:'✅',label:'Sign-Offs',page:'signoffs',badge:'6',badgeRed:false},
     {icon:'📈',label:'Reports',page:'reports'},
+    {icon:'📧',label:'EOD Report',page:'eod',sub:true},
   ],
   manager:[
     {icon:'📊',label:'Dashboard',page:'dashboard'},
-    {icon:'📖',label:'Playbook',page:'playbook'},
+    {icon:'📢',label:'Announcements',page:'announcements'},
+    {icon:'🗂️',label:'Course Library',page:'courses'},
     {icon:'👤',label:'My Team',page:'people'},
-    {icon:'✅',label:'Pending Sign-Offs',page:'signoffs',badge:'3',badgeRed:false},
     {icon:'📈',label:'Team Reports',page:'reports'},
+    {icon:'📧',label:'EOD Report',page:'eod',sub:true},
   ],
   learner:[
     {icon:'🏠',label:'My Dashboard',page:'dashboard'},
@@ -457,7 +470,7 @@ function closeSidebar(){
 
 // ─── NOTIFICATIONS ─────────────────────────────────────────────────────────
 const NOTIFICATIONS = [
-  {id:1,icon:'✅',text:'Alex Chen requested sign-off for Security Fundamentals',time:'2 min ago',unread:true,action:'signoffs'},
+  {id:1,icon:'✅',text:'Kristin Harrington requested sign-off for Security Fundamentals',time:'2 min ago',unread:true,action:'signoffs'},
   {id:2,icon:'⚠️',text:'Sofia Marin is overdue on 2 courses',time:'1 hour ago',unread:true,action:'people'},
   {id:3,icon:'📋',text:'Code of Conduct was updated — 3 team members yet to acknowledge',time:'2 hours ago',unread:true,action:'playbook'},
   {id:4,icon:'👤',text:'Lei Zhang is overdue on Compliance & Ethics',time:'Yesterday',unread:false,action:'people'},
@@ -565,12 +578,17 @@ function go(page){
   closeSidebar();
   renderNav();
   const titles={
-    dashboard:'Dashboard',courses:'Course Library',create:'Create Course',
+    dashboard:'Dashboard',
+    courses:'Course Library',
+    create:'Create Course',
     people:S.role==='manager'?'My Team':'People',
+    announcements:'Announcements',
+    eod:'EOD Report',
+    signoffs:'EOD Report',
     policies:'Policies & Processes',
-    playbook:S.role==='learner'?'Policies & Processes':'Playbook',
+    playbook:S.role==='learner'?'Policies & Processes':'Course Library',
     'playbook-create':'Add Subject',
-    signoffs:'Sign-Offs',reports:'Reports & Analytics',
+    reports:'Reports & Analytics',
     'my-courses':'My Courses','course-detail':'Continue Learning',completed:'Completed Courses'
   };
   document.getElementById('pageTitle').textContent=titles[page]||page;
@@ -579,15 +597,18 @@ function go(page){
   const c=document.getElementById('mainContent');
   ({
     dashboard:()=>renderDashboard(c),
-    courses:()=>renderCourseLibrary(c),
+    content:()=>renderContentLibrary(c),
+    courses:()=>renderContentLibrary(c),
     create:()=>renderCreate(c),
     people:()=>renderPeople(c),
     learners:()=>renderPeople(c),
     users:()=>renderPeople(c),
+    announcements:()=>renderAnnouncements(c),
     policies:()=>renderPolicies(c),
     playbook:()=>renderPlaybook(c),
     'playbook-create':()=>renderPlaybookCreate(c),
-    signoffs:()=>renderSignoffs(c),
+    eod:()=>renderEODReport(c),
+    signoffs:()=>renderEODReport(c),
     reports:()=>renderReports(c),
     'my-courses':()=>renderMyCourses(c),
     'course-detail':()=>renderCourseDetail(c),
@@ -622,15 +643,34 @@ function renderDashboard(c){
         <div style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent-mid),#52a83a);width:${S.progress}%;transition:width 0.5s ease"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:6px">
-        <span style="font-size:11px;color:var(--text3)">Keep going, Alex!</span>
+        <span style="font-size:11px;color:var(--text3)">Keep going, !</span>
         <span style="font-size:11px;color:var(--text3)">${100-S.progress}% remaining</span>
       </div>
     </div>
+
+    <!-- Announcements feed -->
+    ${(()=>{
+      const visible=ANNOUNCEMENTS.filter(a=>!S.dismissedAnnouncements?.includes(a.id));
+      if(!visible.length) return '';
+      return `<div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">📢 Announcements</div>
+        ${visible.map(a=>`
+        <div id="anno-${a.id}" style="display:flex;align-items:start;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid ${a.pinned?'var(--brand-gold)':'var(--border)'};border-radius:var(--radius-lg);margin-bottom:8px;${a.pinned?'border-left:3px solid var(--brand-gold)':''}">
+          <div style="font-size:22px;flex-shrink:0">${a.emoji}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;margin-bottom:3px">${a.title}</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6">${a.body}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:5px">${a.author} · ${a.date}</div>
+          </div>
+          <button onclick="dismissAnnouncement(${a.id})" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;line-height:1;border-radius:4px" title="Dismiss">✕</button>
+        </div>`).join('')}
+      </div>`;
+    })()}
     <div class="grid2">
       <div class="card">
         <div class="card-title">My Active Courses</div>
         ${(()=>{
-          const learner=LEARNERS.find(l=>l.name==='Alex Chen');
+          const learner=LEARNERS.find(l=>l.name===USERS[S.role].name)||LEARNERS[0];
           const assignedIds=learner?.assignedCourses||COURSES.map(co=>co.id);
           const myCourses=COURSES.filter(co=>assignedIds.includes(co.id)).slice(0,3);
           const pcts={7:S.progress,1:35,2:80,3:20,4:0,5:0,6:0};
@@ -657,7 +697,7 @@ function renderDashboard(c){
           </div>`).join('')}
         </div>
         ${S.signedOff?`
-        <div class="callout callout-success">✓ <strong>Security Fundamentals</strong> — signed off by Sam Rivera on Mar 26.</div>`:`
+        <div class="callout callout-success">✓ <strong>Security Fundamentals</strong> — signed off by Sean Kirby on Mar 26.</div>`:`
         <div class="callout callout-blue">⏳ Manager sign-off pending for <strong>Compliance & Ethics</strong></div>`}
       </div>
     </div>`;
@@ -691,7 +731,7 @@ function renderDashboard(c){
     <div class="grid4 section-gap">
       <div class="metric-card"><div class="metric-label">Active Learners</div><div class="metric-value">47</div><div class="metric-delta up">↑ 5 this month</div></div>
       <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value">68%</div><div class="metric-delta up">↑ 12% vs last</div></div>
-      <div class="metric-card"><div class="metric-label">Pending Sign-Offs</div><div class="metric-value" style="color:var(--warn)">6</div><div class="metric-delta">Awaiting review</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue Learners</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Need follow-up</div></div>
       <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Need follow-up</div></div>
     </div>
     <div class="grid2">
@@ -750,6 +790,83 @@ const CAT_ORDER = {};
 CATS.forEach(cat=>{
   CAT_ORDER[cat.name] = COURSES.filter(co=>co.cat===cat.name).map(co=>co.id);
 });
+
+// ─── CONTENT LIBRARY (unified courses + SOPs) ──────────────────────────────
+function renderContentLibrary(c){
+  const tr=document.getElementById('topbarRight');
+  tr.innerHTML=`
+    <button class="btn btn-sm" onclick="go('create')">+ New Course</button>
+    <button class="btn btn-primary btn-sm" onclick="openCreateDoc()">+ New Document</button>`;
+
+  // render shell with tabs, content filled by tab switch
+  c.innerHTML=`
+    <div class="tab-bar" id="contentTabBar">
+      <div class="tab active" onclick="switchContentTab(this,'cl-courses')">📚 Courses</div>
+      <div class="tab" onclick="switchContentTab(this,'cl-docs')">📋 SOPs & Docs</div>
+    </div>
+    <div id="cl-courses"></div>
+    <div id="cl-docs" style="display:none"></div>`;
+
+  // populate both tabs
+  renderCoursesTab(document.getElementById('cl-courses'));
+  renderDocsTab(document.getElementById('cl-docs'));
+}
+
+function switchContentTab(el, id){
+  el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['cl-courses','cl-docs'].forEach(tid=>{
+    const el2=document.getElementById(tid);
+    if(el2) el2.style.display=tid===id?'block':'none';
+  });
+}
+
+function renderCoursesTab(container){
+  if(!container) return;
+  renderCourseLibrary(container);
+}
+
+function renderDocsTab(container){
+  if(!container) return;
+  const docs=PLAYBOOK_DOCS;
+  const isAdmin=S.role==='admin';
+  const cats=[...new Set(docs.map(d=>d.category))].sort();
+
+  container.innerHTML=`
+  <div class="search-bar">
+    <div class="search-input" style="max-width:260px"><input type="text" placeholder="Search documents..." oninput="filterDocsTab(this.value)"></div>
+    <select style="width:auto" id="docTabCatFilter" onchange="filterDocsTab()">
+      <option value="">All Categories</option>
+      ${cats.map(c=>`<option>${c}</option>`).join('')}
+    </select>
+    <select style="width:auto" id="docTabStatusFilter" onchange="filterDocsTab()">
+      <option value="">All Status</option>
+      <option>published</option><option>draft</option>
+    </select>
+  </div>
+  <div class="grid4 section-gap">
+    <div class="metric-card"><div class="metric-label">Total Docs</div><div class="metric-value">${docs.filter(d=>d.status==='published').length}</div></div>
+    <div class="metric-card"><div class="metric-label">Drafts</div><div class="metric-value" style="color:var(--text3)">${docs.filter(d=>d.status==='draft').length}</div></div>
+    <div class="metric-card"><div class="metric-label">Delegated</div><div class="metric-value" style="color:var(--warn)">${docs.filter(d=>d.delegatedTo).length}</div></div>
+    <div class="metric-card"><div class="metric-label">Categories</div><div class="metric-value">${cats.length}</div></div>
+  </div>
+  <div id="docTabList">${renderDocRows(docs)}</div>`;
+}
+
+function filterDocsTab(val){
+  const search=(val||document.querySelector('#docTabList')?.dataset?.search||'').toLowerCase();
+  const cat=document.getElementById('docTabCatFilter')?.value||'';
+  const status=document.getElementById('docTabStatusFilter')?.value||'';
+  const filtered=PLAYBOOK_DOCS.filter(d=>{
+    const matchS=!search||d.title.toLowerCase().includes(search)||d.category.toLowerCase().includes(search);
+    const matchC=!cat||d.category===cat;
+    const matchSt=!status||d.status===status;
+    return matchS&&matchC&&matchSt;
+  });
+  const el=document.getElementById('docTabList');
+  if(el) el.innerHTML=renderDocRows(filtered);
+}
+
 
 function renderCourseLibrary(c){
   const tr=document.getElementById('topbarRight');
@@ -1003,7 +1120,7 @@ const SOP_UPDATES = {
   1:[{date:'Mar 15, 2026',note:'Updated section 3 — new harassment policy language.',by:'Eleni Gagnon',due:'Mar 22',completions:[
     {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',done:true,doneDate:'Mar 18'},
     {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',done:true,doneDate:'Mar 20'},
-    {name:'Alex Chen',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',done:false,doneDate:null},
+    {name:'Kristin Harrington',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',done:false,doneDate:null},
     {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',done:false,doneDate:null},
     {name:'James Okafor',ini:'JO',bg:'#fdeaea',tc:'#8a1f1f',done:true,doneDate:'Mar 21'},
     {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',done:false,doneDate:null},
@@ -1050,6 +1167,7 @@ function openCourseModal(id){
     <div class="tab-bar">
       <div class="tab active" onclick="switchTab(this,'cm-info')">Course Info</div>
       <div class="tab" onclick="switchTab(this,'cm-mods')">Modules</div>
+      <div class="tab" onclick="switchTab(this,'cm-quiz')">Quiz Builder</div>
       <div class="tab" onclick="switchTab(this,'cm-sop')">SOP Updates <span class="badge badge-warn" style="margin-left:4px">${SOP_UPDATES[id].length}</span></div>
     </div>
 
@@ -1076,6 +1194,17 @@ function openCourseModal(id){
         ${COURSE_MODULES[id].map((m,i)=>cmModRowHTML(id,m,i)).join('')}
       </div>
       <button class="btn" style="margin-top:10px" onclick="cmAddMod(${id})">+ Add Module</button>
+    </div>
+
+    <div id="cm-quiz" style="display:none">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Build the quiz learners will take after completing this course. Mark the correct answer with the radio button.</div>
+      <div id="cm-questionList">
+        ${(COURSE_QUIZZES[id]||[{q:'',opts:['','','',''],correct:0}]).map((q,qi)=>cmQuizRowHTML(id,q,qi)).join('')}
+      </div>
+      <button class="btn" style="margin-top:4px" onclick="cmAddQuestion(${id})">+ Add Question</button>
+      <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:var(--radius);font-size:12px;color:var(--text2)">
+        💡 Tip: Aim for 3–5 questions. Keep them focused on key points from the course content.
+      </div>
     </div>
 
     <div id="cm-sop" style="display:none">
@@ -1155,6 +1284,7 @@ function toggleModStatus(badge){
 }
 
 function saveCourseChanges(id){
+  saveCourseQuiz(id);
   openSOPNotifyPrompt(id);
 }
 
@@ -1404,7 +1534,7 @@ function switchTab(el,id){
   const container=el.closest('.card')||el.closest('.modal')||el.closest('#modalContent');
   if(container) container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['tc-info','tc-mods','tc-quiz','tc-assign','cm-info','cm-mods','cm-sop','pm-progress','pm-profile','pm-access','eu-info','eu-courses','eu-access'].forEach(tid=>{
+  ['tc-info','tc-mods','tc-quiz','tc-assign','cm-info','cm-mods','cm-quiz','cm-sop','pm-progress','pm-profile','pm-access','eu-info','eu-courses','eu-access'].forEach(tid=>{
     const el2=document.getElementById(tid);
     if(el2) el2.style.display=tid===id?'block':'none';
   });
@@ -1714,7 +1844,7 @@ function openPersonModal(name){
       </div>
       <div class="grid2">
         <div class="form-group"><label class="form-label">Assigned Manager</label>
-          <select>${['Sam Rivera','Eleni Gagnon','Morgan Lee'].map(m=>`<option${m===l.manager?' selected':''}>${m}</option>`).join('')}</select>
+          <select>${['Eleni Gagnon','Sean Gagnon','Sean Kirby','Cynthia Ramos'].map(m=>`<option${m===l.manager?' selected':''}>${m}</option>`).join('')}</select>
         </div>
         <div class="form-group"><label class="form-label">Start / Hire Date</label>
           <input type="date" value="${toDateInput(l.start)}" style="cursor:pointer">
@@ -1821,7 +1951,7 @@ function openInviteModal(){
     <div class="form-group"><label class="form-label">Full Name</label><input type="text" placeholder="e.g. Jamie Torres"></div>
     <div class="form-group"><label class="form-label">Email Address</label><input type="email" placeholder="jamie@company.com"></div>
     <div class="form-group"><label class="form-label">Department</label><select><option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option></select></div>
-    <div class="form-group"><label class="form-label">Manager</label><select><option>Sam Rivera</option><option>Eleni Gagnon</option><option>Morgan Lee</option></select></div>
+    <div class="form-group"><label class="form-label">Manager</label><select><option>Eleni Gagnon</option><option>Sean Gagnon</option><option>Sean Kirby</option><option>Cynthia Ramos</option></select></div>
     <div class="form-group"><label class="form-label">Assign Onboarding Track</label>
       ${COURSES.slice(0,3).map(co=>`
       <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;font-size:13px">
@@ -1835,13 +1965,13 @@ function openInviteModal(){
 // ─── SIGN-OFFS ─────────────────────────────────────────────────────────────
 function renderSignoffs(c){
   const pending=[
-    {name:'Alex Chen',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',course:'Security Fundamentals',date:'Mar 25',score:88},
+    {name:'Kristin Harrington',ini:'AC',bg:'#dbeafe',tc:'#1a4fa0',course:'Security Fundamentals',date:'Mar 25',score:88},
     {name:'Lei Zhang',ini:'LZ',bg:'#e1f5ee',tc:'#0f6e56',course:'Compliance & Ethics',date:'Mar 24',score:95},
     {name:'Sofia Marin',ini:'SM',bg:'#fef3dc',tc:'#8a5a00',course:'HR Policies & Benefits',date:'Mar 22',score:72},
   ];
   const approved=[
-    {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',course:'Security Fundamentals',approvedDate:'Mar 20',by:'Sam Rivera'},
-    {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',course:'Compliance & Ethics',approvedDate:'Mar 19',by:'Sam Rivera'},
+    {name:'Priya Patel',ini:'PP',bg:'#f0edfe',tc:'#4a38b0',course:'Security Fundamentals',approvedDate:'Mar 20',by:'Sean Kirby'},
+    {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',course:'Compliance & Ethics',approvedDate:'Mar 19',by:'Sean Kirby'},
     {name:'Marcus Webb',ini:'MW',bg:'#e8f5e3',tc:'#2d6a1f',course:'HR Policies & Benefits',approvedDate:'Mar 17',by:'Eleni Gagnon'},
   ];
   c.innerHTML=`
@@ -1959,7 +2089,7 @@ function renderReports(c){
 // ─── MY COURSES ─────────────────────────────────────────────────────────────
 function renderMyCourses(c){
   // get the current learner's assigned courses
-  const learner=LEARNERS.find(l=>l.name==='Alex Chen');
+  const learner=LEARNERS.find(l=>l.name===USERS[S.role].name)||LEARNERS[0];
   const assignedIds=learner?.assignedCourses||COURSES.map(co=>co.id);
   const myCourses=COURSES.filter(co=>assignedIds.includes(co.id));
   const myPcts={7:S.activeCourseId===7?S.progress:20,1:S.activeCourseId===1?S.progress:35,2:80,3:20};
@@ -2105,8 +2235,8 @@ function renderCourseDetail(c){
       ${S.signedOff?`
       <div class="card" style="background:var(--success-bg);border-color:var(--success-border)">
         <div style="font-size:14px;font-weight:600;color:var(--success);margin-bottom:4px">🏆 Course Complete!</div>
-        <div style="font-size:12px;color:var(--text2)">Signed off by Sam Rivera · Mar 26, 2026</div>
-        <button class="btn btn-sm btn-success" style="margin-top:12px" onclick="toast('Certificate downloaded!')">📄 Download Certificate</button>
+        <div style="font-size:12px;color:var(--text2)">Signed off by Sean Kirby · Mar 26, 2026</div>
+        <button class="btn btn-sm btn-success" style="margin-top:12px" onclick="openCertificate(co.title,'Kristin Harrington',new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),'Sean Kirby',Math.round(S.quiz.score/QUIZ.length*100)+'%')">🏆 View Certificate</button>
       </div>`:`
       <div class="signoff-box">
         <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Manager Sign-Off Required</div>
@@ -2234,8 +2364,8 @@ function updateVidBadge(){
 
 
 function reqSignoff(){
-  toast('Sign-off request sent to Sam Rivera!');
-  setTimeout(()=>{S.signedOff=true;S.progress=100;renderCourseDetail(document.getElementById('mainContent'));toast('✓ Sam Rivera approved your sign-off. Course complete!');},2500);
+  toast('Sign-off request sent to Sean Kirby!');
+  setTimeout(()=>{S.signedOff=true;S.progress=100;renderCourseDetail(document.getElementById('mainContent'));toast('✓ Sean Kirby approved your sign-off. Course complete!');},2500);
 }
 
 // ─── COMPLETED ─────────────────────────────────────────────────────────────
@@ -2249,15 +2379,15 @@ function renderCompleted(c){
           <td><div style="display:flex;align-items:center;gap:8px"><span>🔒</span><span style="font-weight:500">Security Fundamentals</span></div></td>
           <td>Mar 20, 2026</td>
           <td><span class="badge badge-success">88%</span></td>
-          <td>Sam Rivera</td>
-          <td><button class="btn btn-sm" onclick="toast('Certificate downloaded!')">📄 Download</button></td>
+          <td>Sean Kirby</td>
+          <td><button class="btn btn-sm btn-primary" onclick="openCertificate('Security Fundamentals','Kristin Harrington','Mar 20, 2026','Sean Kirby','88%')">🏆 View Certificate</button></td>
         </tr>
         ${S.signedOff?`<tr>
           <td><div style="display:flex;align-items:center;gap:8px"><span>⚖️</span><span style="font-weight:500">Compliance & Ethics</span></div></td>
           <td>Mar 27, 2026</td>
           <td><span class="badge badge-success">${Math.round(S.quiz.score/QUIZ.length*100)}%</span></td>
-          <td>Sam Rivera</td>
-          <td><button class="btn btn-sm" onclick="toast('Certificate downloaded!')">📄 Download</button></td>
+          <td>Sean Kirby</td>
+          <td><button class="btn btn-sm btn-primary" onclick="openCertificate('Compliance & Ethics','Kristin Harrington','Mar 27, 2026','Sean Kirby','${Math.round(S.quiz.score/QUIZ.length*100)}%')">🏆 View Certificate</button></td>
         </tr>`:''}
       </tbody>
     </table>
@@ -2407,7 +2537,7 @@ function openUserModal(name){
       <div class="grid2">
         <div class="form-group"><label class="form-label">Assigned Manager</label>
           <select>
-            ${['Sam Rivera','Eleni Gagnon','Morgan Lee'].map(m=>`<option${m===l.manager?' selected':''}>${m}</option>`).join('')}
+            ${['Eleni Gagnon','Sean Gagnon','Sean Kirby','Cynthia Ramos'].map(m=>`<option${m===l.manager?' selected':''}>${m}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label class="form-label">Start / Hire Date</label><input type="date" value="${toDateInput(l.start)}" style="cursor:pointer"></div>
@@ -2483,7 +2613,7 @@ function openAddUserModal(){
     </div>
     <div class="grid2">
       <div class="form-group"><label class="form-label">Assigned Manager</label>
-        <select><option value="">Select...</option>${['Sam Rivera','Eleni Gagnon','Morgan Lee'].map(m=>`<option>${m}</option>`).join('')}</select>
+        <select><option value="">Select...</option>${['Eleni Gagnon','Sean Gagnon','Sean Kirby','Cynthia Ramos'].map(m=>`<option>${m}</option>`).join('')}</select>
       </div>
       <div class="form-group"><label class="form-label">Start / Hire Date</label><input type="date" style="cursor:pointer"></div>
     </div>
@@ -2561,8 +2691,8 @@ function renderPlaybook(c){
 
   const docs = isAdmin ? PLAYBOOK_DOCS : PLAYBOOK_DOCS.filter(d=>d.status==='published');
   const cats = [...new Set(docs.map(d=>d.category))].sort();
-  const myCompleted = docs.filter(d=>d.completedBy.includes('Alex Chen'));
-  const myPending = docs.filter(d=>!d.completedBy.includes('Alex Chen')&&d.status==='published');
+  const myCompleted = docs.filter(d=>d.completedBy.includes('Kristin Harrington'));
+  const myPending = docs.filter(d=>!d.completedBy.includes('Kristin Harrington')&&d.status==='published');
 
   c.innerHTML=`
   <div class="grid4 section-gap">
@@ -2591,7 +2721,7 @@ function renderDocRows(docs){
   if(!docs.length) return `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No documents found.</div></div>`;
   const isAdmin=S.role==='admin';
   return docs.map(d=>{
-    const done=d.completedBy.includes('Alex Chen');
+    const done=d.completedBy.includes('Kristin Harrington');
     const isDraft=d.status==='draft';
     return `<div class="card" style="margin-bottom:10px;border-left:3px solid ${done?'var(--success-border)':isDraft?'var(--border2)':'var(--border)'}">
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -2636,7 +2766,7 @@ function openDocReader(id){
   if(!d||!d.content) return;
   if(!S.docQuizState[id]) S.docQuizState[id]={answered:false,selected:null,correct:false,attempts:0,ready:false};
   const qs=S.docQuizState[id];
-  const done=d.completedBy.includes('Alex Chen');
+  const done=d.completedBy.includes('Kristin Harrington');
   const mc=document.getElementById('modalContent');
   mc.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:18px">
@@ -2720,8 +2850,8 @@ function selectDocAnswer(docId, idx){
   qs.answered=true;
   qs.selected=idx;
   qs.correct=correct;
-  if(correct&&!d.completedBy.includes('Alex Chen')){
-    d.completedBy.push('Alex Chen');
+  if(correct&&!d.completedBy.includes('Kristin Harrington')){
+    d.completedBy.push('Kristin Harrington');
     setTimeout(()=>{
       toast(`✓ "${d.title}" completed!`);
       closeModal();
@@ -3046,6 +3176,350 @@ function openPolicyView(id){
 
 
 
+// ─── COURSE QUIZ BUILDER ───────────────────────────────────────────────────
+const COURSE_QUIZZES = {
+  1:[
+    {q:"What is the primary purpose of the Code of Conduct?",opts:["List employee benefits","Define acceptable behavior and ethical standards","Describe IT protocols","List product features"],correct:1},
+    {q:"How quickly must a data breach be reported to IT Security?",opts:["Within 24 hours","Within 1 week","Immediately","At next team meeting"],correct:2},
+    {q:"Who do you contact first if you witness workplace misconduct?",opts:["Your manager or HR","A trusted colleague","Legal team","External media"],correct:0},
+  ],
+  2:[
+    {q:"What percentage of health insurance premium does the company cover?",opts:["50%","70%","80%","100%"],correct:2},
+    {q:"When does company 401(k) match vest?",opts:["Immediately","1 year","3 years","5 years"],correct:2},
+  ],
+  7:[
+    {q:"What is The Abs Company's tagline?",opts:["Building Better Bodies","We Change Lives from the Core","Fitness for Everyone","Strength Inside Out"],correct:1},
+  ],
+};
+
+function cmQuizRowHTML(courseId, q, qi){
+  return `<div class="card" style="margin-bottom:12px;padding:14px 16px" id="cm-q-${courseId}-${qi}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="badge badge-blue">Question ${qi+1}</span>
+      <button class="btn btn-sm btn-danger" onclick="this.closest('.card').remove()">Remove</button>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <input type="text" value="${q.q||''}" placeholder="Enter your question here..." class="cm-q-text">
+    </div>
+    ${(q.opts||['','','','']).map((o,oi)=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <input type="radio" name="cm-correct-${courseId}-${qi}" ${oi===q.correct?'checked':''} style="width:auto;flex-shrink:0">
+      <input type="text" value="${o}" placeholder="Answer option ${String.fromCharCode(65+oi)}" style="flex:1" class="cm-opt-text">
+    </div>`).join('')}
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">● Select the radio button next to the correct answer</div>
+  </div>`;
+}
+
+function cmAddQuestion(courseId){
+  const list=document.getElementById('cm-questionList');
+  if(!list) return;
+  const qi=list.querySelectorAll('.card').length;
+  const tmp=document.createElement('div');
+  tmp.innerHTML=cmQuizRowHTML(courseId,{q:'',opts:['','','',''],correct:0},qi);
+  list.appendChild(tmp.firstElementChild);
+}
+
+function saveCourseQuiz(courseId){
+  const list=document.getElementById('cm-questionList');
+  if(!list) return;
+  const cards=[...list.querySelectorAll('.card')];
+  COURSE_QUIZZES[courseId]=cards.map((card,qi)=>{
+    const q=card.querySelector('.cm-q-text')?.value||'';
+    const opts=[...card.querySelectorAll('.cm-opt-text')].map(i=>i.value||'');
+    const radios=[...card.querySelectorAll(`input[type=radio]`)];
+    const correct=radios.findIndex(r=>r.checked);
+    return {q,opts,correct:correct>=0?correct:0};
+  }).filter(q=>q.q.trim());
+}
+
+// ─── CERTIFICATE GENERATOR ─────────────────────────────────────────────────
+function openCertificate(courseName, learnerName, completedDate, manager, score){
+  const certNum='TAC-'+Date.now().toString().slice(-6);
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:600">Certificate of Completion</div>
+      <div style="display:flex;gap:8px">
+        <button class="expand-btn" onclick="toggleModalExpand(this)">⤢ Expand</button>
+        <button class="btn btn-sm" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+
+    <!-- Certificate Preview -->
+    <div id="certPreview" style="background:#000;border-radius:var(--radius-lg);padding:40px 48px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px">
+      <!-- Gold border frame -->
+      <div style="position:absolute;inset:8px;border:2px solid var(--brand-gold);border-radius:10px;pointer-events:none;opacity:0.6"></div>
+      <div style="position:absolute;inset:12px;border:1px solid var(--brand-gold);border-radius:8px;pointer-events:none;opacity:0.3"></div>
+
+      <!-- Logo -->
+      <img src="${document.querySelector('.logo img')?.src||''}" style="width:80px;height:80px;object-fit:contain;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">
+
+      <!-- Certificate text -->
+      <div style="font-size:11px;color:var(--brand-gold);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;font-family:'DM Sans',sans-serif">Certificate of Completion</div>
+      <div style="font-size:11px;color:#888;margin-bottom:20px;font-family:'DM Sans',sans-serif">This certifies that</div>
+
+      <div style="font-size:28px;font-weight:700;color:#fff;font-family:'DM Sans',sans-serif;margin-bottom:8px;letter-spacing:-0.01em">${learnerName}</div>
+      <div style="width:160px;height:1px;background:var(--brand-gold);margin:0 auto 20px;opacity:0.6"></div>
+
+      <div style="font-size:12px;color:#aaa;margin-bottom:6px;font-family:'DM Sans',sans-serif">has successfully completed</div>
+      <div style="font-size:18px;font-weight:600;color:var(--brand-gold);margin-bottom:20px;font-family:'DM Sans',sans-serif">${courseName}</div>
+
+      <div style="display:flex;justify-content:center;gap:40px;margin-bottom:24px">
+        <div style="text-align:center">
+          <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Completed</div>
+          <div style="font-size:13px;color:#ccc;font-weight:500">${completedDate}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Score</div>
+          <div style="font-size:13px;color:#ccc;font-weight:500">${score}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Approved By</div>
+          <div style="font-size:13px;color:#ccc;font-weight:500">${manager}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <div style="height:1px;width:60px;background:var(--brand-gold);opacity:0.4"></div>
+        <div style="font-size:10px;color:#555;letter-spacing:0.1em">CERT NO. ${certNum}</div>
+        <div style="height:1px;width:60px;background:var(--brand-gold);opacity:0.4"></div>
+      </div>
+
+      <div style="margin-top:16px;font-size:10px;color:#444;font-style:italic">We Change Lives from the Core®</div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="printCertificate()">🖨️ Print / Save as PDF</button>
+      <button class="btn" onclick="closeModal()">Close</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function printCertificate(){
+  const cert=document.getElementById('certPreview');
+  if(!cert) return;
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Certificate</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body{margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    @media print{body{background:#000}@page{margin:0;size:landscape}}</style>
+    </head><body>${cert.outerHTML}
+    <script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+
+// ─── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
+const ANNOUNCEMENTS = [
+  {id:1,title:'Welcome to the new LMS! 🎉',body:'We\'ve launched The Abs Company Learning Management System. All team members are required to complete their assigned courses within 30 days. Reach out to Eleni Gagnon in HR with any questions.',author:'Eleni Gagnon',role:'HR Administrator',date:'Mar 27, 2026',pinned:true,emoji:'📢'},
+  {id:2,title:'Q2 Training Deadline Reminder',body:'Please ensure all compliance and security courses are completed by April 15th. Managers will be following up with anyone who has not completed their required training.',author:'Sean Kirby',role:'Team Manager',date:'Mar 25, 2026',pinned:false,emoji:'⏰'},
+  {id:3,title:'New Course Added: Leadership Foundations',body:'We\'ve added a new Leadership Foundations course to the library. This course is recommended for all team leads and managers. It covers communication, delegation, and team motivation.',author:'Eleni Gagnon',role:'HR Administrator',date:'Mar 20, 2026',pinned:false,emoji:'🎯'},
+];
+
+function renderAnnouncements(c){
+  const canPost=S.role==='admin'||S.role==='manager';
+  const tr=document.getElementById('topbarRight');
+  if(canPost) tr.innerHTML=`<button class="btn btn-primary btn-sm" onclick="openNewAnnouncement()">+ Post Announcement</button>`;
+
+  const pinned=ANNOUNCEMENTS.filter(a=>a.pinned);
+  const rest=ANNOUNCEMENTS.filter(a=>!a.pinned);
+
+  c.innerHTML=`
+  ${pinned.length?`
+  <div style="margin-bottom:20px">
+    ${pinned.map(a=>announcementCardHTML(a,canPost)).join('')}
+  </div>`:''}
+  <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">All Announcements</div>
+  ${rest.map(a=>announcementCardHTML(a,canPost)).join('')}
+  ${!ANNOUNCEMENTS.length?`<div class="empty"><div class="empty-icon">📢</div><div class="empty-title">No announcements yet</div></div>`:''}`;
+}
+
+function announcementCardHTML(a, canPost){
+  return `<div class="card" style="margin-bottom:12px;${a.pinned?'border-left:3px solid var(--brand-gold)':''}">
+    <div style="display:flex;align-items:start;gap:14px">
+      <div style="font-size:28px;flex-shrink:0">${a.emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <div style="font-size:14px;font-weight:600">${a.title}</div>
+          ${a.pinned?`<span class="badge" style="background:#2a1f00;color:var(--brand-gold);border-color:var(--brand-gold)">📌 Pinned</span>`:''}
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px">${a.body}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="font-size:11px;color:var(--text3)">${a.author} · ${a.role} · ${a.date}</div>
+          ${canPost?`<div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="togglePin(${a.id})">${a.pinned?'Unpin':'📌 Pin'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteAnnouncement(${a.id})">Delete</button>
+          </div>`:''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openNewAnnouncement(){
+  const mc=document.getElementById('modalContent');
+  mc.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:17px;font-weight:600">New Announcement</div>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Icon</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="annoEmojis">
+        ${['📢','⏰','🎯','🏆','📋','💡','🎉','⚠️','✅','📚'].map(e=>`
+        <button class="btn" style="font-size:18px;padding:5px 9px" onclick="pickAnnoEmoji(this,'${e}')">${e}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Title</label><input type="text" id="annoTitle" placeholder="e.g. Important Policy Update"></div>
+    <div class="form-group"><label class="form-label">Message</label><textarea id="annoBody" rows="4" placeholder="Write your announcement here..."></textarea></div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="annoPinned"> Pin to top of announcements
+      </label>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveAnnouncement()">Post Announcement</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+let _annoEmoji='📢';
+function pickAnnoEmoji(btn,e){
+  _annoEmoji=e;
+  btn.closest('#annoEmojis').querySelectorAll('.btn').forEach(b=>b.style.background='');
+  btn.style.background='var(--accent-bg)';
+}
+function saveAnnouncement(){
+  const title=document.getElementById('annoTitle')?.value.trim();
+  const body=document.getElementById('annoBody')?.value.trim();
+  if(!title||!body){toast('Please fill in title and message.');return;}
+  const u=USERS[S.role];
+  ANNOUNCEMENTS.unshift({
+    id:Date.now(),title,body,emoji:_annoEmoji,
+    author:u.name,role:u.role,
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    pinned:document.getElementById('annoPinned')?.checked||false,
+  });
+  toast('Announcement posted!');
+  closeModal();
+  renderAnnouncements(document.getElementById('mainContent'));
+}
+function dismissAnnouncement(id){
+  if(!S.dismissedAnnouncements) S.dismissedAnnouncements=[];
+  S.dismissedAnnouncements.push(id);
+  const el=document.getElementById('anno-'+id);
+  if(el){el.style.opacity='0';el.style.transition='opacity 0.2s';setTimeout(()=>{el.remove();},200);}
+}
+
+function togglePin(id){
+  const a=ANNOUNCEMENTS.find(x=>x.id===id);
+  if(a){a.pinned=!a.pinned;renderAnnouncements(document.getElementById('mainContent'));}
+}
+function deleteAnnouncement(id){
+  const idx=ANNOUNCEMENTS.findIndex(x=>x.id===id);
+  if(idx>=0){ANNOUNCEMENTS.splice(idx,1);renderAnnouncements(document.getElementById('mainContent'));toast('Announcement deleted.');}
+}
+
+// ─── EOD REPORT ────────────────────────────────────────────────────────────
+function renderEODReport(c){
+  const isAdmin=S.role==='admin';
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const u=USERS[S.role];
+
+  const teamMembers=isAdmin?LEARNERS:LEARNERS.filter(l=>l.manager===u.name);
+  const completed=teamMembers.filter(l=>l.status==='complete');
+  const overdue=teamMembers.filter(l=>l.overdue>0);
+
+  const tr=document.getElementById('topbarRight');
+  tr.innerHTML=`
+    <button class="btn btn-sm" onclick="openScheduleModal()">⏰ Schedule</button>
+    <button class="btn btn-primary btn-sm" onclick="sendEODReport()">📧 Send Now</button>`;
+
+  c.innerHTML=`
+  <div class="grid2 section-gap" style="max-width:480px">
+    <div class="metric-card"><div class="metric-label">Completed Today</div><div class="metric-value" style="color:var(--success)">${completed.length}</div><div class="metric-delta">${completed.length===teamMembers.length?'🎉 Whole team done!':'of '+teamMembers.length+' team members'}</div></div>
+    <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:${overdue.length?'var(--danger)':'var(--success)'}">${overdue.length}</div><div class="metric-delta ${overdue.length?'down':'up'}">${overdue.length?'Need follow-up':'All on track ✓'}</div></div>
+  </div>
+
+  <div class="grid2" style="align-items:start">
+    <!-- Settings -->
+    <div class="card">
+      <div class="card-title">Report Settings</div>
+      <div class="form-group">
+        <label class="form-label">Send time</label>
+        <select><option>5:00 PM daily</option><option>4:00 PM daily</option><option>6:00 PM daily</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Frequency</label>
+        <select><option>Weekdays only (Mon–Fri)</option><option>Every day</option><option>Weekly (Fridays only)</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recipients</label>
+        ${[...new Set(LEARNERS.map(l=>l.manager))].map(m=>`
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-bottom:6px">
+          <input type="checkbox" checked> ${m}
+          ${m==='Eleni Gagnon'?'<span class="badge badge-blue">Admin</span>':'<span class="badge badge-gray">Manager</span>'}
+        </label>`).join('')}
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="toast('Settings saved!')">Save Settings</button>
+    </div>
+
+    <!-- Email preview -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="card-title" style="margin:0">Email Preview</div>
+        <span class="badge badge-gray">${today}</span>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+        <div style="background:#000;padding:16px 20px;text-align:center">
+          <img src="${document.querySelector('.logo img')?.src||''}" style="width:50px;height:50px;object-fit:contain;display:block;margin:0 auto 6px">
+          <div style="color:var(--brand-gold);font-size:10px;letter-spacing:0.12em;text-transform:uppercase">Daily Training Report</div>
+        </div>
+        <div style="padding:18px">
+          <div style="font-size:13px;margin-bottom:5px;font-weight:500">Hi ${isAdmin?'Eleni':'Manager'},</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+            Here's today's training update for your team at <strong>The Abs Company</strong>.
+            ${overdue.length?`<span style="color:var(--danger);font-weight:500"> ${overdue.length} member${overdue.length>1?'s':''} need${overdue.length===1?'s':''} follow-up.</span>`:'Everyone is on track!'}
+          </div>
+
+          ${completed.length?`
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px;font-weight:600;color:var(--success);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">✓ Completed</div>
+            ${completed.map(l=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--success-bg);border-radius:var(--radius-sm);margin-bottom:5px">
+              <div class="av av-sm" style="background:${l.bg};color:${l.tc};width:24px;height:24px;font-size:9px">${l.ini}</div>
+              <div style="flex:1;font-size:12px;font-weight:500">${l.name}</div>
+              <span style="font-size:11px;color:var(--success);font-weight:600">100% ✓</span>
+            </div>`).join('')}
+          </div>`:`<div style="padding:10px;background:var(--surface2);border-radius:var(--radius-sm);font-size:12px;color:var(--text3);margin-bottom:14px;text-align:center">No completions today yet.</div>`}
+
+          ${overdue.length?`
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px;font-weight:600;color:var(--danger);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">⚠️ Overdue</div>
+            ${overdue.map(l=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:var(--radius-sm);margin-bottom:5px">
+              <div class="av av-sm" style="background:${l.bg};color:${l.tc};width:24px;height:24px;font-size:9px">${l.ini}</div>
+              <div style="flex:1;font-size:12px;font-weight:500">${l.name}</div>
+              <span style="font-size:11px;color:var(--danger);font-weight:600">${l.overdue} overdue</span>
+            </div>`).join('')}
+          </div>`:''}
+
+          <div style="border-top:1px solid var(--border);padding-top:12px;font-size:10px;color:var(--text3);text-align:center">
+            Automated report · The Abs Company LMS
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sendEODReport(){
+  toast('📧 EOD Report sent to all managers!');
+}
+
+function openScheduleModal(){
+  toast('⏰ Report scheduled for 5:00 PM weekdays.');
+}
+
 function toast(msg){
   const n=document.getElementById('notif');
   n.textContent=msg;n.className='notif-ok';n.style.display='block';
@@ -3138,11 +3612,9 @@ function initResizableTables(){
   }, 50);
 }
 
-// patch renderPeople, renderSignoffs, renderReports to init resize after render
+// patch renderPeople, renderReports to init resize after render
 const _origRenderPeople=renderPeople;
 renderPeople=function(c){_origRenderPeople(c);initResizableTables();};
-const _origRenderSignoffs=renderSignoffs;
-renderSignoffs=function(c){_origRenderSignoffs(c);initResizableTables();};
 const _origRenderReports=renderReports;
 renderReports=function(c){_origRenderReports(c);initResizableTables();};
 const _origRenderCompleted=renderCompleted;
