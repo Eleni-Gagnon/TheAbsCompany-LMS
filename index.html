@@ -291,10 +291,10 @@
     <div class="role-switcher">
       <div class="role-label">Viewing as</div>
       <select id="roleSelect" onchange="switchRole(this.value)">
-        <option value="admin">Admin / HR</option>
+        <option value="admin">Admin</option>
         <option value="manager">Manager</option>
         <option value="learner">New Hire / Learner</option>
-        <option value="executive">Executive</option>
+        
       </select>
     </div>
     <nav class="nav-body" id="sidebarNav"></nav>
@@ -348,14 +348,16 @@ const S = {
   videoWatched:false,
   progress:35,
   signedOff:false,
-  activeCourseId:7,
+  activeCourseId:1,
   quizReady:false,
   dismissedAnnouncements:[],
+  courseProgress:{},
+  completedModules:{},
   courseDrafts:{}
 };
 
 const USERS = {
-  admin:{name:'Eleni Gagnon',initials:'EG',role:'COO / HR Administrator',avBg:'#dbeafe',avCol:'#1a4fa0'},
+  admin:{name:'Eleni Gagnon',initials:'EG',role:'Admin',avBg:'#dbeafe',avCol:'#1a4fa0'},
   manager:{name:'Sean Kirby',initials:'SK',role:'VP of Sales',avBg:'#faeeda',avCol:'#8a5a00'},
   learner:{name:'Kristin Harrington',initials:'KH',role:'Sales Manager',avBg:'#fef3dc',avCol:'#8a5a00'},
   executive:{name:'Michael Ritter',initials:'MR',role:'President',avBg:'#fce4ec',avCol:'#c62828'},
@@ -435,7 +437,6 @@ const NAV = {
   learner:[
     {icon:'🏠',label:'My Dashboard',page:'dashboard'},
     {icon:'📚',label:'My Courses',page:'my-courses'},
-    {icon:'▶️',label:'Continue Learning',page:'course-detail'},
     {icon:'📖',label:'Policies & Processes',page:'playbook'},
     {icon:'🏆',label:'Completed',page:'completed'},
   ],
@@ -685,7 +686,7 @@ function renderDashboard(c){
             <span class="badge ${(pcts[co.id]||0)===100?'badge-success':(pcts[co.id]||0)>60?'badge-blue':(pcts[co.id]||0)>0?'badge-warn':'badge-gray'}">${(pcts[co.id]||0)===100?'Done':(pcts[co.id]||0)>0?'Active':'Start'}</span>
           </div>`).join('');
         })()}
-        <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="openLearnerCourse(${COURSES[0].id})">▶ Continue Learning</button>
+        <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="go('my-courses')">📚 View All My Courses</button>
       </div>
       <div>
         <div class="card section-gap">
@@ -971,6 +972,7 @@ function saveNewCourse(catName){
   ];
   COURSE_QUIZZES[newId]=[{q:'',opts:['','','',''],correct:0}];
   SOP_UPDATES[newId]=[];
+  lsSave();
   toast(`"${title}" added to ${catName}!`);
   closeModal();
   renderContentLibrary(document.getElementById('mainContent'));
@@ -1003,7 +1005,7 @@ function openReorderModal(catName){
     </div>
     <hr class="divider">
     <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" onclick="toast('Order saved!');closeModal();renderContentLibrary(document.getElementById('mainContent'))">Save Order</button>
+      <button class="btn btn-primary" onclick="lsSave();toast('Order saved!');closeModal();renderContentLibrary(document.getElementById('mainContent'))">Save Order</button>
       <button class="btn" onclick="closeModal()">Cancel</button>
     </div>`;
   document.getElementById('modalBg').classList.add('open');
@@ -1046,7 +1048,7 @@ function openAssignModal(catName){
     <div style="font-size:13px;font-weight:500;margin-bottom:10px">Select courses to assign:</div>
     ${courses.map(co=>`
     <label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer">
-      <input type="checkbox" checked>
+      <input type="checkbox" class="assign-course-cb" data-id="${co.id}" checked>
       <div style="width:28px;height:28px;border-radius:6px;background:${co.color};display:flex;align-items:center;justify-content:center;font-size:14px">${co.emoji}</div>
       <div style="flex:1"><div style="font-size:13px;font-weight:500">${co.title}</div><div style="font-size:11px;color:var(--text3)">${co.dur}</div></div>
     </label>`).join('')}
@@ -1080,8 +1082,30 @@ function toggleAllAssign(checked){
 }
 
 function saveAssignments(catName){
-  const checked=document.querySelectorAll('.assign-cb:checked').length;
-  toast(`Courses assigned to ${checked} team member${checked!==1?'s':''}!`);
+  // get checked course ids
+  const checkedCourseIds=[...document.querySelectorAll('.assign-course-cb:checked')].map(cb=>parseInt(cb.dataset.id));
+
+  if(!checkedCourseIds.length){
+    toast('No courses selected.');return;
+  }
+
+  // update each checked learner
+  const learnerRows=[...document.querySelectorAll('.assign-learner-row')];
+  let count=0;
+  learnerRows.forEach(row=>{
+    const cb=row.querySelector('.assign-cb');
+    if(!cb?.checked) return;
+    const name=row.querySelector('div > div:first-child')?.textContent.trim();
+    const learner=LEARNERS.find(l=>l.name===name);
+    if(!learner) return;
+    checkedCourseIds.forEach(id=>{
+      if(!learner.assignedCourses.includes(id)) learner.assignedCourses.push(id);
+    });
+    count++;
+  });
+
+  lsSave();
+  toast(`✓ ${checkedCourseIds.length} course${checkedCourseIds.length!==1?'s':''} assigned to ${count} team member${count!==1?'s':''}!`);
   closeModal();
 }
 
@@ -1258,20 +1282,20 @@ function cmModRowHTML(courseId, m, i){
   const blocksHTML=blocks.map((b,bi)=>cmBlockHTML(uid,b,bi)).join('');
 
   return `<div class="mod-block" draggable="true" data-uid="${uid}"
-    ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)"
+    ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)" ondragend="modDragEnd(event)"
     style="border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden">
 
     <!-- Header row -->
-    <div style="padding:10px 12px;background:var(--surface);cursor:pointer" onclick="toggleModExpand('${uid}')">
+    <div style="padding:10px 12px;background:var(--surface)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="cursor:grab;color:var(--text3);font-size:16px;padding:0 2px;flex-shrink:0" onclick="event.stopPropagation()">⠿</div>
+        <div data-drag-handle style="cursor:grab;color:var(--text3);font-size:16px;padding:0 4px;flex-shrink:0" title="Drag to reorder">⠿</div>
         <div class="module-icon ${m.type}" style="flex-shrink:0">${icons[m.type]||'📄'}</div>
-        <input type="text" value="${m.t}" onclick="event.stopPropagation()"
+        <input type="text" value="${m.t}" class="mod-title-input"
           style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0"
           placeholder="Module title...">
-        <span style="font-size:12px;color:var(--text3);flex-shrink:0" id="expand-arrow-${uid}">▼</span>
+        <span style="font-size:12px;color:var(--text3);flex-shrink:0;cursor:pointer;padding:4px 6px;border-radius:4px;user-select:none" id="expand-arrow-${uid}" onclick="toggleModExpand('${uid}')">▼</span>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;padding-left:52px" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:6px;padding-left:52px">
         <select style="width:auto;font-size:11px" onchange="updateModBlockIcon(this)">
           <option ${m.type==='doc'?'selected':''} value="doc">📄 Document</option>
           <option ${m.type==='video'?'selected':''} value="video">▶️ Video</option>
@@ -1404,7 +1428,7 @@ function saveCourseChanges(id){
     const blocks=modList.querySelectorAll('.mod-block');
     COURSE_MODULES[id]=[...blocks].map(block=>{
       const uid=block.dataset.uid;
-      const title=block.querySelector('input[type=text]')?.value||'Untitled Module';
+      const title=block.querySelector('.mod-title-input')?.value||'Untitled Module';
       const typeSelect=block.querySelector('select');
       const type=typeSelect?.value||'doc';
       const statusBadge=block.querySelector('.badge');
@@ -1440,6 +1464,7 @@ function saveCourseChanges(id){
   // Save quiz
   saveCourseQuiz(id);
 
+  lsSave();
   toast('Course saved!');
   closeModal();
   renderContentLibrary(document.getElementById('mainContent'));
@@ -1701,21 +1726,20 @@ function modRowHTML(title, type, idx){
   const icons={doc:'📄',video:'▶️',quiz:'📝'};
   const uid='mod_'+Date.now()+'_'+idx;
   return `<div class="mod-block" draggable="true" data-uid="${uid}"
-    ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)"
+    ondragstart="modDragStart(event)" ondragover="modDragOver(event)" ondrop="modDrop(event)" ondragleave="modDragLeave(event)" ondragend="modDragEnd(event)"
     style="border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden">
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);cursor:pointer"
-      onclick="toggleModExpand('${uid}')">
-      <div style="cursor:grab;color:var(--text3);font-size:16px;padding:0 2px" onclick="event.stopPropagation()">⠿</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface)">
+      <div data-drag-handle style="cursor:grab;color:var(--text3);font-size:16px;padding:0 4px" title="Drag to reorder">⠿</div>
       <div class="module-icon doc" style="flex-shrink:0" id="icon-${uid}">${icons[type]||'📄'}</div>
-      <input type="text" value="${title}" onclick="event.stopPropagation()"
+      <input type="text" value="${title}" class="mod-title-input"
         style="border:none;background:transparent;font-size:13px;padding:0;font-family:inherit;flex:1;outline:none;font-weight:500;min-width:0">
-      <select style="width:auto;font-size:12px" onclick="event.stopPropagation()" onchange="updateModBlockIcon(this)">
+      <select style="width:auto;font-size:12px" onchange="updateModBlockIcon(this)">
         <option ${type==='doc'?'selected':''} value="doc">📄 Document</option>
         <option ${type==='video'?'selected':''} value="video">▶️ Video</option>
         <option ${type==='quiz'?'selected':''} value="quiz">📝 Quiz</option>
       </select>
-      <span style="font-size:11px;color:var(--text3);padding:0 4px" id="expand-arrow-${uid}">▼</span>
-      <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();this.closest('.mod-block').remove()">Remove</button>
+      <span style="font-size:11px;color:var(--text3);padding:4px 6px;cursor:pointer;border-radius:4px;user-select:none" id="expand-arrow-${uid}" onclick="toggleModExpand('${uid}')">▼</span>
+      <button class="btn btn-sm btn-danger" onclick="this.closest('.mod-block').remove()">Remove</button>
     </div>
     <div id="mod-expand-${uid}" style="display:none;border-top:1px solid var(--border);padding:16px;background:var(--surface2)">
       <div id="blocks-${uid}" style="margin-bottom:12px"></div>
@@ -1753,19 +1777,26 @@ function updateModBlockIcon(sel){
 // drag reorder for modules
 let _modDragEl=null;
 function modDragStart(e){
+  // only allow drag if the grab handle was the origin
+  if(!e.target.closest('[data-drag-handle]')){e.preventDefault();return;}
   _modDragEl=e.currentTarget;
-  setTimeout(()=>_modDragEl&&(_modDragEl.style.opacity='0.4'),0);
+  setTimeout(()=>_modDragEl&&(_modDragEl.style.opacity='0.5'),0);
+}
+function modDragEnd(e){
+  if(_modDragEl){_modDragEl.style.opacity='1';_modDragEl=null;}
+  // reset all border colors
+  document.querySelectorAll('.mod-block').forEach(b=>b.style.borderColor='');
 }
 function modDragOver(e){
   e.preventDefault();
   const target=e.currentTarget;
-  if(target!==_modDragEl) target.style.borderColor='var(--accent-mid)';
+  if(target!==_modDragEl) target.style.borderColor='var(--brand-gold)';
 }
-function modDragLeave(e){e.currentTarget.style.borderColor='var(--border)';}
+function modDragLeave(e){e.currentTarget.style.borderColor='';}
 function modDrop(e){
   e.preventDefault();
   const target=e.currentTarget;
-  target.style.borderColor='var(--border)';
+  target.style.borderColor='';
   if(!_modDragEl||target===_modDragEl) return;
   const list=_modDragEl.parentElement;
   if(!list) return;
@@ -2009,7 +2040,7 @@ function openPersonModal(name){
         </div>
       </div>
       <div class="form-group"><label class="form-label">System Role</label>
-        <select><option>Learner</option><option>Manager</option><option>Admin / HR</option><option>Executive (View Only)</option></select>
+        <select><option>Learner</option><option>Manager</option><option>Admin</option><option>Executive</option></select>
       </div>
       <div class="form-group">
         <label class="form-label">Assigned Courses</label>
@@ -2054,6 +2085,7 @@ function savePersonModal(name){
   if(!l) return;
   const cbs=document.querySelectorAll('.course-assign-cb');
   if(cbs.length) l.assignedCourses=[...cbs].filter(cb=>cb.checked).map(cb=>parseInt(cb.dataset.id));
+  lsSave();
   toast('Changes saved for '+name+'!');
   closeModal();
 }
@@ -2246,35 +2278,49 @@ function renderReports(c){
 
 // ─── MY COURSES ─────────────────────────────────────────────────────────────
 function renderMyCourses(c){
-  // get the current learner's assigned courses
   const learner=LEARNERS.find(l=>l.name===USERS[S.role].name)||LEARNERS[0];
   const assignedIds=learner?.assignedCourses||COURSES.map(co=>co.id);
-  const myCourses=COURSES.filter(co=>assignedIds.includes(co.id));
-  const myPcts={7:S.activeCourseId===7?S.progress:20,1:S.activeCourseId===1?S.progress:35,2:80,3:20};
+
+  // get all courses in admin-defined order, filtered to assigned only
+  const allOrdered=CATS.flatMap(cat=>getOrderedCourses(cat.name));
+  const myCourses=allOrdered.filter(co=>assignedIds.includes(co.id));
 
   if(!myCourses.length){
     c.innerHTML=`<div class="empty"><div class="empty-icon">📚</div><div class="empty-title">No courses assigned yet</div><div style="font-size:13px">Your manager will assign courses to you soon.</div></div>`;
     return;
   }
 
-  c.innerHTML=`
-  <div class="grid3">
-    ${myCourses.map(co=>{
-      const pct=myPcts[co.id]||0;
-      return `<div class="course-card" onclick="openLearnerCourse(${co.id})">
-        <div class="course-thumb" style="background:${co.color}">${co.emoji}</div>
-        <div class="course-body">
-          <div class="course-title">${co.title}</div>
-          <div class="course-meta"><span class="badge badge-gray">${co.cat}</span></div>
-          <div class="progress-bar" style="margin-top:8px"><div class="progress-fill ${pct===100?'green':''}" style="width:${pct}%"></div></div>
-          <div style="display:flex;justify-content:space-between;margin-top:4px">
-            <span style="font-size:11px;color:var(--text3)">${pct}% done</span>
-            <span style="font-size:11px;color:var(--text3)">${co.dur}</span>
-          </div>
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
+  // group by category, preserving order
+  const byCat={};
+  myCourses.forEach(co=>{
+    if(!byCat[co.cat]) byCat[co.cat]=[];
+    byCat[co.cat].push(co);
+  });
+
+  c.innerHTML=Object.entries(byCat).map(([cat,courses])=>`
+    <div style="margin-bottom:32px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:600">${cat}</div>
+        <div style="font-size:12px;color:var(--text3)">${courses.length} course${courses.length!==1?'s':''}</div>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="grid3">
+        ${courses.map(co=>{
+          const pct=S.courseProgress?.[co.id]||0;
+          return `<div class="course-card" onclick="openLearnerCourse(${co.id})">
+            <div class="course-thumb" style="background:${co.color}">${co.emoji}</div>
+            <div class="course-body">
+              <div class="course-title">${co.title}</div>
+              <div class="progress-bar" style="margin-top:8px"><div class="progress-fill ${pct===100?'green':''}" style="width:${pct}%"></div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px">
+                <span style="font-size:11px;color:var(--text3)">${pct}% done</span>
+                <span style="font-size:11px;color:var(--text3)">${co.dur}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
 }
 
 function openLearnerCourse(id){
@@ -2290,25 +2336,44 @@ function openLearnerCourse(id){
 function renderCourseDetail(c){
   const co=COURSES.find(x=>x.id===S.activeCourseId)||COURSES[0];
   const qs=S.quiz;
-  const mods=COURSE_MODULES[co.id]||[
-    {t:'Introduction & Welcome',type:'doc',status:'published',attachments:[]},
-    {t:'Core Training Video',type:'video',status:'published',attachments:[]},
-    {t:'Knowledge Check Quiz',type:'quiz',status:'published',attachments:[]},
-    {t:'Manager Sign-Off',type:'signoff',status:'draft',attachments:[]},
-  ];
+  const mods=(COURSE_MODULES[co.id]||[]).filter(m=>m.status==='published'||m.status===undefined);
   const hasVideo=mods.some(m=>m.type==='video');
   const hasQuiz=mods.some(m=>m.type==='quiz');
-  const totalSteps=(hasVideo?1:0)+(hasQuiz?1:0)+1; // +1 for intro
-  const doneSteps=(hasVideo&&S.videoWatched?1:0)+(hasQuiz&&qs.done&&qs.score>=3?1:0)+1;
-  const pct=Math.round(doneSteps/Math.max(totalSteps,1)*100);
+  const contentMods=mods.filter(m=>m.type!=='quiz');
+  const totalSteps=mods.length;
+  const doneSteps=mods.filter((m,i)=>{
+    if(m.type==='video') return S.videoWatched;
+    if(m.type==='quiz') return qs.done&&qs.score>=3;
+    return S.completedModules?.[co.id]?.includes(i);
+  }).length;
+  const pct=mods.length?Math.round(doneSteps/totalSteps*100):0;
 
   document.getElementById('pageTitle').textContent='';
   document.getElementById('pageCrumb').textContent='My Courses / '+co.title;
   document.getElementById('topbarRight').innerHTML=`<button class="btn btn-sm" onclick="go('my-courses')">← Back to My Courses</button>`;
 
+  // render content block for learner view
+  function renderBlock(b){
+    if(!b) return '';
+    if(b.type==='text') return `<div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-line;margin-bottom:12px">${b.val||''}</div>`;
+    if(b.type==='video'){
+      const url=b.val||'';
+      const ytMatch=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+      const vmMatch=url.match(/vimeo\.com\/(\d+)/);
+      if(ytMatch) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin-bottom:12px"><iframe src="https://www.youtube.com/embed/${ytMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--radius)" allowfullscreen></iframe></div>`;
+      if(vmMatch) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin-bottom:12px"><iframe src="https://player.vimeo.com/video/${vmMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--radius)" allowfullscreen></iframe></div>`;
+      return url?`<a href="${url}" target="_blank" class="btn btn-sm" style="margin-bottom:12px">▶️ Watch Video</a>`:'';
+    }
+    if(b.type==='link') return b.val?`<a href="${b.val}" target="_blank" class="btn btn-primary btn-sm" style="margin-bottom:12px;display:inline-flex">🔗 ${b.label||'Open Link'}</a> `:'';
+    if(b.type==='file') return b.val?`<a href="${b.val}" target="_blank" class="btn btn-sm" style="margin-bottom:12px;display:inline-flex">📎 ${b.label||'Download File'}</a> `:'';
+    if(b.type==='image') return b.val?`<img src="${b.val}" style="max-width:100%;border-radius:var(--radius);margin-bottom:12px" alt="Module image">`:'';
+    return '';
+  }
+
   c.innerHTML=`
   <div class="grid2" style="align-items:start">
     <div>
+      <!-- Course header card -->
       <div class="card section-gap" style="padding:16px 18px">
         <div style="display:flex;align-items:center;gap:14px">
           <div style="font-size:36px;flex-shrink:0">${co.emoji}</div>
@@ -2318,93 +2383,76 @@ function renderCourseDetail(c){
             <div class="progress-bar" style="margin:0 0 4px"><div class="progress-fill" style="width:${pct}%"></div></div>
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:11px;color:var(--text3)">${pct}% complete</span>
-              <span class="badge ${pct===100?'badge-success':pct>50?'badge-blue':'badge-warn'}">${pct===100?'✓ Done':pct+''+'% done'}</span>
+              <span class="badge ${pct===100?'badge-success':pct>50?'badge-blue':'badge-warn'}">${pct===100?'✓ Done':pct+'% done'}</span>
             </div>
           </div>
         </div>
       </div>
 
-      ${hasVideo ? `
-      <div class="card section-gap">
-        <div class="card-title">Video Module — ${mods.find(m=>m.type==='video')?.t||'Training Video'}</div>
-        ${S.videoWatched ? `
-        <div style="background:#0f1729;border-radius:var(--radius-lg);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
-          <div style="font-size:36px">✅</div>
-          <div style="color:#fff;font-size:13px;font-weight:500">Video completed</div>
-          <div style="color:rgba(255,255,255,0.5);font-size:11px">${co.title} · ${co.dur}</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-          <span class="badge badge-success">✓ Watched</span>
-          <span style="font-size:12px;color:var(--text3)">Completed — system verified</span>
-        </div>` : `
-        <div class="video-player" id="vidPlayer" style="cursor:default">
-          <div class="vid-overlay" id="vidOverlay">
-            <div class="vid-play" id="vidPlayBtn" onclick="startVideo()" style="cursor:pointer">▶</div>
-            <div style="font-size:13px;opacity:0.7">${co.title}</div>
-            <div style="font-size:11px;opacity:0.5;margin-top:3px">${co.dur} · Must watch to continue</div>
+      <!-- Module content cards -->
+      ${contentMods.map((m,i)=>{
+        const blocks=m.blocks||[];
+        const hasContent=blocks.length>0;
+        const isVideo=m.type==='video';
+        const videoBlock=isVideo?blocks.find(b=>b.type==='video'):null;
+        return `<div class="card section-gap">
+          <div class="card-title" style="display:flex;align-items:center;gap:8px">
+            <span>${{doc:'📄',video:'▶️',quiz:'📝'}[m.type]||'📄'}</span>
+            ${m.t}
           </div>
-          <div class="vid-controls">
-            <div id="vidToggle" style="color:#fff;font-size:14px;cursor:pointer;width:20px;text-align:center" onclick="toggleVideoPlay()">▶</div>
-            <div class="vid-prog"><div class="vid-fill" id="vidFill" style="width:0%;transition:width 1s linear"></div></div>
-            <div style="color:#fff;font-size:11px;min-width:80px;text-align:right" id="vidTime">0:00 / ${co.dur}</div>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-          <span class="badge badge-warn" id="vidBadge">▶ Press play to begin</span>
-          <span style="font-size:11px;color:var(--text3)" id="vidNote">Completion is tracked automatically</span>
-        </div>`}
-      </div>` : ''}
+          ${hasContent
+            ? blocks.map(b=>renderBlock(b)).join('')
+            : `<div style="font-size:13px;color:var(--text3);padding:8px 0;font-style:italic">Content coming soon.</div>`}
+        </div>`;
+      }).join('')}
 
+      <!-- Quiz section -->
       ${hasQuiz ? `
       <div class="card">
-        <div class="card-title">Knowledge Quiz — ${mods.find(m=>m.type==='quiz')?.t||'Quiz'}</div>
-        ${hasVideo && !S.videoWatched && !S.quizReady ? `
-        <div style="text-align:center;padding:20px;border:1px dashed var(--border2);border-radius:var(--radius-lg);background:var(--surface2)">
-          <div style="font-size:20px;margin-bottom:6px">🔒</div>
-          <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:3px">Quiz locked</div>
-          <div style="font-size:12px;color:var(--text3)">Watch the video to unlock the quiz.</div>
-        </div>` : !S.quizReady ? `
+        <div class="card-title">📝 ${mods.find(m=>m.type==='quiz')?.t||'Knowledge Check'}</div>
+        ${!S.quizReady ? `
         <div style="text-align:center;padding:16px">
           <button class="btn btn-primary" onclick="S.quizReady=true;renderCourseDetail(document.getElementById('mainContent'))">I've finished the content — Take Quiz →</button>
         </div>` : renderQuiz()}
-      </div>` : `
-      <div class="card">
-        <div class="card-title">Module Content</div>
-        <div style="font-size:13px;color:var(--text2);padding:16px 0">
-          Review all materials in this course, then request your manager sign-off below.
+      </div>` : ''}
+
+      <!-- Completion card -->
+      ${pct===100||S.signedOff?`
+      <div class="card" style="background:var(--success-bg);border-color:var(--success-border)">
+        <div style="text-align:center;padding:8px 0">
+          <div style="font-size:32px;margin-bottom:8px">🏆</div>
+          <div style="font-size:15px;font-weight:600;color:var(--success);margin-bottom:4px">Course Complete!</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Signed off by Sean Kirby · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+          <button class="btn btn-sm btn-success" onclick="openCertificate(co.title,'Kristin Harrington',new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),'Sean Kirby',Math.round(S.quiz.score/Math.max(QUIZ.length,1)*100)+'%')">🏆 View Certificate</button>
         </div>
-      </div>`}
+      </div>`:''}
     </div>
 
+    <!-- Right sidebar: module list -->
     <div>
       <div class="card section-gap">
         <div class="card-title">Course Modules</div>
         ${mods.map((m,i)=>{
-          const done=(m.type==='doc'&&i===0)||(m.type==='video'&&S.videoWatched)||(m.type==='quiz'&&qs.done&&qs.score>=3)||(m.type==='signoff'&&S.signedOff);
-          const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+          const done=(m.type==='video'&&S.videoWatched)||(m.type==='quiz'&&qs.done&&qs.score>=3);
+          const icons={doc:'📄',video:'▶️',quiz:'📝'};
           return `<div class="module-row">
             <div class="module-icon ${m.type}">${icons[m.type]||'📄'}</div>
             <div style="flex:1;font-size:13px;font-weight:500">${m.t}</div>
-            <div class="check-c ${done?'done':''}">${done?'✓':''}</div>
+            <div class="check-c ${done?'done':''}">${done?'✓':i+1}</div>
           </div>`;
         }).join('')}
       </div>
 
-      ${S.signedOff?`
-      <div class="card" style="background:var(--success-bg);border-color:var(--success-border)">
-        <div style="font-size:14px;font-weight:600;color:var(--success);margin-bottom:4px">🏆 Course Complete!</div>
-        <div style="font-size:12px;color:var(--text2)">Signed off by Sean Kirby · Mar 26, 2026</div>
-        <button class="btn btn-sm btn-success" style="margin-top:12px" onclick="openCertificate(co.title,'Kristin Harrington',new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),'Sean Kirby',Math.round(S.quiz.score/QUIZ.length*100)+'%')">🏆 View Certificate</button>
-      </div>`:`
+      ${!S.signedOff&&!S.quizReady?`
       <div class="signoff-box">
-        <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">Manager Sign-Off Required</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Complete all modules, then request sign-off from your manager to earn your certificate.</div>
-        <button class="btn btn-sm btn-primary" onclick="reqSignoff()">Request Sign-Off from Manager</button>
-      </div>`}
-
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">Ready to complete?</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Complete all modules, then take the quiz to earn your certificate.</div>
+        <button class="btn btn-sm btn-primary" onclick="S.quizReady=true;renderCourseDetail(document.getElementById('mainContent'))">Start Quiz →</button>
+      </div>`:''}
     </div>
   </div>`;
 }
+
 
 function renderQuiz(){
   const qs=S.quiz;
@@ -2704,8 +2752,8 @@ function openUserModal(name){
         <select>
           <option>Learner</option>
           <option>Manager</option>
-          <option>Admin / HR</option>
-          <option>Executive (View Only)</option>
+          <option>Admin</option>
+          <option>Executive</option>
         </select>
       </div>
     </div>
@@ -2776,7 +2824,7 @@ function openAddUserModal(){
       <div class="form-group"><label class="form-label">Start / Hire Date</label><input type="date" style="cursor:pointer"></div>
     </div>
     <div class="form-group"><label class="form-label">System Role</label>
-      <select><option>Learner</option><option>Manager</option><option>Admin / HR</option><option>Executive (View Only)</option></select>
+      <select><option>Learner</option><option>Manager</option><option>Admin</option><option>Executive</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Auto-assign onboarding courses</label>
@@ -3071,7 +3119,7 @@ function saveEditDoc(id){
   d.updated=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   d.updatedBy='Eleni Gagnon';
   d.delegatedTo=null;
-  toast('Document saved!');
+  lsSave();toast('Document saved!');
   closeModal();
   renderPlaybook(document.getElementById('mainContent'));
 }
@@ -3199,7 +3247,7 @@ function saveNewDoc(){
     quiz:q?{q,opts,correct:correct>=0?correct:0}:null,
     completedBy:[]
   });
-  toast('Document published!');
+  lsSave();toast('Document published!');
   closeModal();
   renderPlaybook(document.getElementById('mainContent'));
 }
@@ -3463,9 +3511,9 @@ function printCertificate(){
 
 // ─── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
 const ANNOUNCEMENTS = [
-  {id:1,title:'Welcome to the new LMS! 🎉',body:'We\'ve launched The Abs Company Learning Management System. All team members are required to complete their assigned courses within 30 days. Reach out to Eleni Gagnon in HR with any questions.',author:'Eleni Gagnon',role:'HR Administrator',date:'Mar 27, 2026',pinned:true,emoji:'📢'},
+  {id:1,title:'Welcome to the new LMS! 🎉',body:'We\'ve launched The Abs Company Learning Management System. All team members are required to complete their assigned courses within 30 days. Reach out to Eleni Gagnon in HR with any questions.',author:'Eleni Gagnon',role:'Admin',date:'Mar 27, 2026',pinned:true,emoji:'📢'},
   {id:2,title:'Q2 Training Deadline Reminder',body:'Please ensure all compliance and security courses are completed by April 15th. Managers will be following up with anyone who has not completed their required training.',author:'Sean Kirby',role:'Team Manager',date:'Mar 25, 2026',pinned:false,emoji:'⏰'},
-  {id:3,title:'New Course Added: Leadership Foundations',body:'We\'ve added a new Leadership Foundations course to the library. This course is recommended for all team leads and managers. It covers communication, delegation, and team motivation.',author:'Eleni Gagnon',role:'HR Administrator',date:'Mar 20, 2026',pinned:false,emoji:'🎯'},
+  {id:3,title:'New Course Added: Leadership Foundations',body:'We\'ve added a new Leadership Foundations course to the library. This course is recommended for all team leads and managers. It covers communication, delegation, and team motivation.',author:'Eleni Gagnon',role:'Admin',date:'Mar 20, 2026',pinned:false,emoji:'🎯'},
 ];
 
 function renderAnnouncements(c){
@@ -3554,7 +3602,7 @@ function saveAnnouncement(){
     date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
     pinned:document.getElementById('annoPinned')?.checked||false,
   });
-  toast('Announcement posted!');
+  lsSave();toast('Announcement posted!');
   closeModal();
   renderAnnouncements(document.getElementById('mainContent'));
 }
@@ -3772,6 +3820,51 @@ const _origRenderReports=renderReports;
 renderReports=function(c){_origRenderReports(c);initResizableTables();};
 const _origRenderCompleted=renderCompleted;
 renderCompleted=function(c){_origRenderCompleted(c);initResizableTables();};
+
+// ─── LOCALSTORAGE PERSISTENCE ──────────────────────────────────────────────
+const LS_KEY = 'tac_lms_v1';
+
+function lsSave(){
+  try {
+    const data = {
+      COURSES,
+      COURSE_MODULES,
+      COURSE_QUIZZES,
+      CAT_ORDER,
+      CATS,
+      PLAYBOOK_DOCS,
+      ANNOUNCEMENTS,
+      LEARNERS: LEARNERS.map(l=>({...l})),
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
+  } catch(e){ console.warn('localStorage save failed', e); }
+}
+
+function lsLoad(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(data.COURSES?.length) COURSES.splice(0, COURSES.length, ...data.COURSES);
+    if(data.CATS?.length) CATS.splice(0, CATS.length, ...data.CATS);
+    if(data.COURSE_MODULES) Object.assign(COURSE_MODULES, data.COURSE_MODULES);
+    if(data.COURSE_QUIZZES) Object.assign(COURSE_QUIZZES, data.COURSE_QUIZZES);
+    if(data.CAT_ORDER) Object.assign(CAT_ORDER, data.CAT_ORDER);
+    if(data.PLAYBOOK_DOCS?.length) PLAYBOOK_DOCS.splice(0, PLAYBOOK_DOCS.length, ...data.PLAYBOOK_DOCS);
+    if(data.ANNOUNCEMENTS?.length) ANNOUNCEMENTS.splice(0, ANNOUNCEMENTS.length, ...data.ANNOUNCEMENTS);
+    if(data.LEARNERS?.length) LEARNERS.splice(0, LEARNERS.length, ...data.LEARNERS);
+    console.log('✅ Loaded saved data from localStorage');
+  } catch(e){ console.warn('localStorage load failed', e); }
+}
+
+function lsClear(){
+  localStorage.removeItem(LS_KEY);
+  toast('🗑️ Saved data cleared — refreshing...');
+  setTimeout(()=>location.reload(), 1200);
+}
+
+// Load saved data before rendering
+lsLoad();
 
 switchRole('admin');
 </script>
