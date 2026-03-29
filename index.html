@@ -4751,8 +4751,7 @@ function seedIfEmpty(){
 seedIfEmpty();
 lsLoad();
 
-// Initialize auth on load
-initAuth();
+// Auth initialized in second script block below
 </script>
 
 <!-- ── LOGIN SCREEN ──────────────────────────────────────────────────── -->
@@ -4798,10 +4797,6 @@ initAuth();
 
 <!-- ── SUPABASE AUTH LAYER ────────────────────────────────────────────── -->
 <script>
-const SUPABASE_URL = 'https://dydkcromilomebqpdpid.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5ZGtjcm9taWxvbWVicXBkcGlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg4MjcsImV4cCI6MjA5MDMyNDgyN30.Nf_gF6wnmQFdatzdPPCkYkIMNViVsdapZM28LztQfY8';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 let currentUser = null;
 let currentProfile = null;
 
