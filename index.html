@@ -346,135 +346,13 @@
 <script>
 // ─── SUPABASE CLIENT ─────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://dydkcromilomebqpdpid.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_S7m7Cg1sT30nZBaZ1yjSNA_-r_UWkiH';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5ZGtjcm9taWxvbWVicXBkcGlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg4MjcsImV4cCI6MjA5MDMyNDgyN30.Nf_gF6wnmQFdatzdPPCkYkIMNViVsdapZM28LztQfY8';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Current logged-in user
 let CURRENT_USER = null;
 let CURRENT_PROFILE = null;
 
-// ─── AUTH FUNCTIONS ───────────────────────────────────────────────────────
-async function signInWithGoogle(){
-  const {error}=await sb.auth.signInWithOAuth({
-    provider:'google',
-    options:{redirectTo:window.location.href}
-  });
-  if(error) toast('Sign in failed: '+error.message);
-}
-
-async function signOut(){
-  await sb.auth.signOut();
-  CURRENT_USER=null;
-  CURRENT_PROFILE=null;
-  showLoginScreen();
-}
-
-async function loadProfile(user){
-  const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).single();
-  if(data) return data;
-  // Auto-create profile on first login
-  const name=user.user_metadata?.full_name||user.email.split('@')[0];
-  const email=user.email;
-  // Check if this email matches a known team member to assign role
-  const known=LEARNERS.find(l=>l.email===email);
-  const role=email==='eleni@theabscompany.com'?'admin':
-              ['skirby@theabscompany.com','sean@theabscompany.com','cindy@theabscompany.com'].includes(email)?'manager':'learner';
-  const newProfile={
-    id:user.id,
-    name:known?.name||name,
-    email,
-    role,
-    title:known?.title||'Team Member',
-    dept:known?.dept||'',
-    manager:known?.manager||'',
-    ini:(known?.name||name).split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(),
-    bg:known?.bg||'#dbeafe',
-    tc:known?.tc||'#1a4fa0',
-    start_date:known?.start||new Date().toLocaleDateString(),
-    assigned_courses:JSON.stringify(known?.assignedCourses||[1,2,5,6,7,8,9])
-  };
-  const {data:created}=await sb.from('profiles').insert(newProfile).select().single();
-  return created||newProfile;
-}
-
-function showLoginScreen(){
-  document.getElementById('app').style.display='none';
-  let login=document.getElementById('loginScreen');
-  if(!login){
-    login=document.createElement('div');
-    login.id='loginScreen';
-    login.innerHTML=`
-      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);font-family:'DM Sans',sans-serif">
-        <div style="width:100%;max-width:380px;padding:20px">
-          <div style="text-align:center;margin-bottom:32px">
-            <img src="${document.querySelector('.logo img')?.src||''}" style="height:60px;margin-bottom:16px;object-fit:contain" onerror="this.style.display='none'">
-            <div style="font-size:22px;font-weight:700;margin-bottom:6px">The Abs Company</div>
-            <div style="font-size:13px;color:var(--text3)">Learning Management System</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow)">
-            <div style="font-size:16px;font-weight:600;margin-bottom:6px">Welcome back 👋</div>
-            <div style="font-size:13px;color:var(--text2);margin-bottom:24px">Sign in with your company Google account</div>
-            <button onclick="signInWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all 0.15s" onmouseover="this.style.borderColor='var(--brand-gold)';this.style.background='var(--accent-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-              <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
-              Sign in with Google
-            </button>
-            <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:16px">Use your @theabscompany.com account</div>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(login);
-  }
-  login.style.display='block';
-}
-
-function hideLoginScreen(){
-  const login=document.getElementById('loginScreen');
-  if(login) login.style.display='none';
-  document.getElementById('app').style.display='';
-}
-
-async function initAuth(){
-  // Check for existing session
-  const {data:{session}}=await sb.auth.getSession();
-  if(session?.user){
-    CURRENT_USER=session.user;
-    CURRENT_PROFILE=await loadProfile(session.user);
-    applyProfile(CURRENT_PROFILE);
-    hideLoginScreen();
-  } else {
-    showLoginScreen();
-  }
-
-  // Listen for auth changes
-  sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session?.user){
-      CURRENT_USER=session.user;
-      CURRENT_PROFILE=await loadProfile(session.user);
-      applyProfile(CURRENT_PROFILE);
-      hideLoginScreen();
-    } else if(event==='SIGNED_OUT'){
-      showLoginScreen();
-    }
-  });
-}
-
-function applyProfile(profile){
-  if(!profile) return;
-  // Set role in S
-  S.role=profile.role||'learner';
-  // Update sidebar
-  const av=document.getElementById('sidebarAv');
-  const name=document.getElementById('sidebarName');
-  const role=document.getElementById('sidebarRole');
-  if(av) av.textContent=profile.ini||'?';
-  if(name) name.textContent=profile.name||profile.email;
-  if(role) role.textContent=profile.title||profile.role;
-  // Hide role switcher for non-admins in production
-  const switcher=document.getElementById('roleSwitcher');
-  if(switcher) switcher.style.display=profile.role==='admin'?'':'none';
-  // Re-render with correct role
-  switchRole(profile.role||'learner');
-}
 
 const S = {
   role:'admin', page:'dashboard',
@@ -4899,6 +4777,15 @@ initAuth();
         <input type="password" id="loginPassword" placeholder="••••••••" style="font-size:14px" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:8px;font-size:14px;padding:11px" onclick="doLogin()" id="loginBtn">Sign In</button>
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:12px;color:var(--text3)">or</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <button onclick="doGoogleLogin()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif" onmouseover="this.style.borderColor='var(--brand-gold)'" onmouseout="this.style.borderColor='var(--border)'">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+        Continue with Google
+      </button>
       <div style="text-align:center;margin-top:14px">
         <button onclick="showForgotPassword()" style="background:none;border:none;font-size:12px;color:var(--accent);cursor:pointer">Forgot your password?</button>
       </div>
@@ -4912,7 +4799,7 @@ initAuth();
 <!-- ── SUPABASE AUTH LAYER ────────────────────────────────────────────── -->
 <script>
 const SUPABASE_URL = 'https://dydkcromilomebqpdpid.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_S7m7Cg1sT30nZBaZ1yjSNA_-r_UWkiH';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5ZGtjcm9taWxvbWVicXBkcGlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg4MjcsImV4cCI6MjA5MDMyNDgyN30.Nf_gF6wnmQFdatzdPPCkYkIMNViVsdapZM28LztQfY8';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
@@ -4937,6 +4824,14 @@ function showLogin(){
 function hideLogin(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='flex';
+}
+
+async function doGoogleLogin(){
+  const {error}=await sb.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:'https://the-abs-company-lms.vercel.app'}
+  });
+  if(error) showLoginError('Google sign in failed: '+error.message);
 }
 
 async function doLogin(){
