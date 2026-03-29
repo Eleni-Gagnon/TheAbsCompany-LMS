@@ -351,8 +351,12 @@ const S = {
   activeCourseId:1,
   quizReady:false,
   dismissedAnnouncements:[],
+  acknowledgedAnnouncements:[],
   courseProgress:{},
   completedModules:{},
+  completedCourses:{},
+  uploads:{},
+  formResponses:{},
   courseDrafts:{}
 };
 
@@ -472,8 +476,7 @@ function closeSidebar(){
 
 // ─── NOTIFICATIONS ─────────────────────────────────────────────────────────
 const NOTIFICATIONS = [
-  {id:1,icon:'✅',text:'Kristin Harrington requested sign-off for Security Fundamentals',time:'2 min ago',unread:true,action:'signoffs'},
-  {id:2,icon:'⚠️',text:'Sofia Marin is overdue on 2 courses',time:'1 hour ago',unread:true,action:'people'},
+    {id:2,icon:'⚠️',text:'Sofia Marin is overdue on 2 courses',time:'1 hour ago',unread:true,action:'people'},
   {id:3,icon:'📋',text:'Code of Conduct was updated — 3 team members yet to acknowledge',time:'2 hours ago',unread:true,action:'playbook'},
   {id:4,icon:'👤',text:'Lei Zhang is overdue on Compliance & Ethics',time:'Yesterday',unread:false,action:'people'},
   {id:5,icon:'🏆',text:'Marcus Webb completed all assigned courses',time:'Yesterday',unread:false,action:'people'},
@@ -623,30 +626,45 @@ function renderDashboard(c){
   if(S.role==='learner'){
     const u=USERS[S.role];
     const firstName=u.name.split(' ')[0];
+    const learner=LEARNERS.find(l=>l.name===u.name)||LEARNERS[0];
+    const assignedIds=learner?.assignedCourses||[];
+    const assignedCourses=COURSES.filter(co=>assignedIds.includes(co.id));
+    const completedCount=Object.keys(S.completedCourses||{}).length;
+    const totalModules=assignedCourses.reduce((sum,co)=>{
+      const mods=(COURSE_MODULES[co.id]||[]).filter(m=>m.status==='published'||!m.status);
+      return sum+mods.length;
+    },0);
+    const doneModules=assignedCourses.reduce((sum,co)=>{
+      const mods=(COURSE_MODULES[co.id]||[]).filter(m=>m.status==='published'||!m.status);
+      const done=(S.completedModules?.[co.id]||[]).length + (mods.some(m=>m.type==='quiz')&&S.quiz.done&&S.quiz.score>=3?1:0);
+      return sum+Math.min(done,mods.length);
+    },0);
+    const overallPct=totalModules?Math.round(doneModules/totalModules*100):0;
+
     c.innerHTML=`
     <div style="margin-bottom:20px">
       <div style="font-size:22px;font-weight:600">Welcome, ${firstName}! 👋</div>
       <div style="font-size:13px;color:var(--text2);margin-top:3px">Here's where you left off.</div>
     </div>
     <div class="grid4 section-gap">
-      <div class="metric-card"><div class="metric-label">Assigned</div><div class="metric-value">4</div></div>
-      <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value">1</div></div>
-      <div class="metric-card"><div class="metric-label">Progress</div><div class="metric-value">${S.progress}%</div></div>
-      <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:var(--danger)">1</div></div>
+      <div class="metric-card"><div class="metric-label">Assigned</div><div class="metric-value">${assignedCourses.length}</div></div>
+      <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--success)">${completedCount}</div></div>
+      <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value" style="color:var(--accent)">${assignedCourses.length-completedCount}</div></div>
+      <div class="metric-card"><div class="metric-label">Overall Progress</div><div class="metric-value">${overallPct}%</div></div>
     </div>
 
     <!-- Full-width overall progress bar -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:600">Overall Onboarding Progress</div>
-        <div style="font-size:13px;font-weight:600;color:var(--accent)">${S.progress}%</div>
+        <div style="font-size:13px;font-weight:600">Overall Progress</div>
+        <div style="font-size:13px;font-weight:600;color:var(--accent)">${overallPct}%</div>
       </div>
       <div style="height:12px;background:var(--bg);border-radius:6px;overflow:hidden;width:100%">
-        <div style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent-mid),#52a83a);width:${S.progress}%;transition:width 0.5s ease"></div>
+        <div style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--brand-gold),#52a83a);width:${overallPct}%;transition:width 0.5s ease"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:6px">
-        <span style="font-size:11px;color:var(--text3)">Keep going, !</span>
-        <span style="font-size:11px;color:var(--text3)">${100-S.progress}% remaining</span>
+        <span style="font-size:11px;color:var(--text3)">Keep going, ${firstName}!</span>
+        <span style="font-size:11px;color:var(--text3)">${doneModules} of ${totalModules} modules complete</span>
       </div>
     </div>
 
@@ -663,64 +681,90 @@ function renderDashboard(c){
             <div style="font-size:13px;font-weight:600;margin-bottom:3px">${a.title}</div>
             <div style="font-size:12px;color:var(--text2);line-height:1.6">${a.body}</div>
             <div style="font-size:11px;color:var(--text3);margin-top:5px">${a.author} · ${a.date}</div>
+            <label style="display:flex;align-items:center;gap:7px;margin-top:10px;cursor:pointer;font-size:12px;color:var(--text2);user-select:none">
+              <input type="checkbox" id="ack-${a.id}" ${S.acknowledgedAnnouncements?.includes(a.id)?'checked':''} onchange="acknowledgeAnnouncement(${a.id},this)" style="width:auto;accent-color:var(--brand-gold)">
+              <span id="ack-label-${a.id}" style="color:${S.acknowledgedAnnouncements?.includes(a.id)?'var(--success)':'var(--text3)'}">
+                ${S.acknowledgedAnnouncements?.includes(a.id)?'✓ Acknowledged':'I have read and understood this announcement'}
+              </span>
+            </label>
           </div>
           <button onclick="dismissAnnouncement(${a.id})" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;line-height:1;border-radius:4px" title="Dismiss">✕</button>
         </div>`).join('')}
       </div>`;
     })()}
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title">My Active Courses</div>
-        ${(()=>{
-          const learner=LEARNERS.find(l=>l.name===USERS[S.role].name)||LEARNERS[0];
-          const assignedIds=learner?.assignedCourses||COURSES.map(co=>co.id);
-          const myCourses=COURSES.filter(co=>assignedIds.includes(co.id)).slice(0,3);
-          const pcts={7:S.progress,1:35,2:80,3:20,4:0,5:0,6:0};
-          return myCourses.map(co=>`<div class="module-row" onclick="openLearnerCourse(${co.id})" style="cursor:pointer">
-            <div class="module-icon" style="background:${co.color};font-size:18px">${co.emoji}</div>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:500">${co.title}</div>
-              <div class="progress-bar"><div class="progress-fill${(pcts[co.id]||0)>70?' green':''}" style="width:${pcts[co.id]||0}%"></div></div>
-              <div style="font-size:11px;color:var(--text3)">${pcts[co.id]||0}% · ${co.dur}</div>
-            </div>
-            <span class="badge ${(pcts[co.id]||0)===100?'badge-success':(pcts[co.id]||0)>60?'badge-blue':(pcts[co.id]||0)>0?'badge-warn':'badge-gray'}">${(pcts[co.id]||0)===100?'Done':(pcts[co.id]||0)>0?'Active':'Start'}</span>
-          </div>`).join('');
-        })()}
-        <button class="btn btn-primary" style="margin-top:14px;width:100%" onclick="go('my-courses')">📚 View All My Courses</button>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin:0">My Courses</div>
+        <button class="btn btn-primary btn-sm" onclick="go('my-courses')">View All →</button>
       </div>
-      <div>
-        <div class="card section-gap">
-          <div class="card-title">Upcoming Deadlines</div>
-          ${COURSES.slice(0,3).map((co,i)=>`
-          <div class="learner-row">
-            <div style="font-size:20px">${co.emoji}</div>
-            <div style="flex:1"><div style="font-size:13px">${co.title}</div><div style="font-size:11px;color:var(--text3)">${co.cat}</div></div>
-            <span class="badge ${i===1?'badge-danger':'badge-warn'}">Due ${co.due}</span>
-          </div>`).join('')}
-        </div>
-        ${S.signedOff?`
-        <div class="callout callout-success">✓ <strong>Security Fundamentals</strong> — signed off by Sean Kirby on Mar 26.</div>`:`
-        <div class="callout callout-blue">⏳ Manager sign-off pending for <strong>Compliance & Ethics</strong></div>`}
+      <div class="table-wrap">
+        <table id="dashCourseTable">
+          <thead>
+            <tr>
+              <th onclick="sortDashTable(0)" style="cursor:pointer;width:40%">Course <span id="sort0">↕</span></th>
+              <th onclick="sortDashTable(1)" style="cursor:pointer;width:20%">Category <span id="sort1">↕</span></th>
+              <th onclick="sortDashTable(2)" style="cursor:pointer;width:20%">Progress <span id="sort2">↕</span></th>
+              <th onclick="sortDashTable(3)" style="cursor:pointer;width:20%">Status <span id="sort3">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="dashCourseBody">
+            ${(()=>{
+              const learner=LEARNERS.find(l=>l.name===USERS[S.role].name)||LEARNERS[0];
+              const assignedIds=learner?.assignedCourses||COURSES.map(co=>co.id);
+              const allOrdered=CATS.flatMap(cat=>getOrderedCourses(cat.name));
+              const myCourses=allOrdered.filter(co=>assignedIds.includes(co.id));
+              return myCourses.map(co=>{
+                const pct=S.courseProgress?.[co.id]||0;
+                const status=pct===100?'Done':pct>0?'In Progress':'Not Started';
+                const statusBadge=pct===100?'badge-success':pct>0?'badge-blue':'badge-gray';
+                return `<tr onclick="openLearnerCourse(${co.id})" style="cursor:pointer">
+                  <td>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <div style="width:28px;height:28px;border-radius:6px;background:${co.color};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${co.emoji}</div>
+                      <span style="font-weight:500">${co.title}</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-gray">${co.cat}</span></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;min-width:60px">
+                        <div style="height:100%;border-radius:3px;background:${pct===100?'var(--success)':'var(--brand-gold)'};width:${pct}%"></div>
+                      </div>
+                      <span style="font-size:11px;color:var(--text3);min-width:28px">${pct}%</span>
+                    </div>
+                  </td>
+                  <td><span class="badge ${statusBadge}">${status}</span></td>
+                </tr>`;
+              }).join('');
+            })()}
+          </tbody>
+        </table>
       </div>
     </div>`;
   } else if(S.role==='executive'){
+    const total=LEARNERS.length;
+    const completed=LEARNERS.filter(l=>l.status==='complete').length;
+    const compRate=total?Math.round(completed/total*100):0;
+    const overdue=LEARNERS.filter(l=>l.overdue>0).length;
     c.innerHTML=`
     <div class="grid4 section-gap">
-      <div class="metric-card"><div class="metric-label">Total Learners</div><div class="metric-value">47</div><div class="metric-delta up">↑ 5 this month</div></div>
-      <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value">68%</div><div class="metric-delta up">↑ 12% vs last month</div></div>
-      <div class="metric-card"><div class="metric-label">Active Courses</div><div class="metric-value">6</div><div class="metric-delta">2 categories</div></div>
-      <div class="metric-card"><div class="metric-label">Overdue Learners</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Needs attention</div></div>
+      <div class="metric-card"><div class="metric-label">Total Learners</div><div class="metric-value">${total}</div></div>
+      <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value">${compRate}%</div></div>
+      <div class="metric-card"><div class="metric-label">Active Courses</div><div class="metric-value">${COURSES.length}</div><div class="metric-delta">${CATS.filter(cat=>(COURSE_MODULES[cat.name]||[]).length>0||COURSES.some(c=>c.cat===cat.name)).length} categories</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue Learners</div><div class="metric-value" style="color:${overdue?'var(--danger)':'var(--success)'}">${overdue}</div><div class="metric-delta ${overdue?'down':'up'}">${overdue?'Need follow-up':'All on track ✓'}</div></div>
     </div>
     <div class="card">
       <div class="card-title">Completion by Course</div>
       ${COURSES.map(co=>{
-        const pct=Math.round(co.completed/co.enrolled*100);
+        const enrolled=LEARNERS.filter(l=>l.assignedCourses?.includes(co.id)).length;
+        const done=LEARNERS.filter(l=>l.assignedCourses?.includes(co.id)&&l.status==='complete').length;
+        const pct=enrolled?Math.round(done/enrolled*100):0;
         return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:13px">
           <div style="font-size:20px;width:28px;text-align:center">${co.emoji}</div>
           <div style="flex:1">
             <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
               <span style="font-weight:500">${co.title}</span>
-              <span style="color:var(--text2)">${co.completed}/${co.enrolled} (${pct}%)</span>
+              <span style="color:var(--text2)">${done}/${enrolled} (${pct}%)</span>
             </div>
             <div class="progress-bar" style="margin:0"><div class="progress-fill ${pct>70?'green':pct>40?'':'amber'}" style="width:${pct}%"></div></div>
           </div>
@@ -729,44 +773,56 @@ function renderDashboard(c){
       }).join('')}
     </div>`;
   } else {
+    // Admin + Manager dashboard
+    const isAdmin=S.role==='admin';
+    const u=USERS[S.role];
+    const team=isAdmin?LEARNERS:LEARNERS.filter(l=>l.manager===u.name);
+    const total=team.length;
+    const completed=team.filter(l=>l.status==='complete').length;
+    const compRate=total?Math.round(completed/total*100):0;
+    const overdue=team.filter(l=>l.overdue>0).length;
+    const inProgress=team.filter(l=>l.status==='in-progress').length;
+
+    // dept breakdown from real team
+    const deptMap={};
+    team.forEach(l=>{
+      if(!deptMap[l.dept]) deptMap[l.dept]=[];
+      deptMap[l.dept].push(l);
+    });
+
     c.innerHTML=`
     <div class="grid4 section-gap">
-      <div class="metric-card"><div class="metric-label">Active Learners</div><div class="metric-value">47</div><div class="metric-delta up">↑ 5 this month</div></div>
-      <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value">68%</div><div class="metric-delta up">↑ 12% vs last</div></div>
-      <div class="metric-card"><div class="metric-label">Overdue Learners</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Need follow-up</div></div>
-      <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:var(--danger)">8</div><div class="metric-delta down">Need follow-up</div></div>
+      <div class="metric-card"><div class="metric-label">${isAdmin?'Total Learners':'My Team'}</div><div class="metric-value">${total}</div></div>
+      <div class="metric-card"><div class="metric-label">Completion Rate</div><div class="metric-value" style="color:${compRate>70?'var(--success)':compRate>40?'var(--accent)':'var(--danger)'}">${compRate}%</div></div>
+      <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value" style="color:var(--accent)">${inProgress}</div></div>
+      <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:${overdue?'var(--danger)':'var(--success)'}">${overdue}</div><div class="metric-delta ${overdue?'down':'up'}">${overdue?'Need follow-up':'All on track ✓'}</div></div>
     </div>
     <div class="grid2">
       <div class="card">
         <div class="card-title">Team Progress</div>
-        ${(() => {
-          const depts = ['Finance','Human Resources','Marketing','Operations','Sales'];
-          return depts.map(dept => {
-            const members = LEARNERS.filter(l => l.dept === dept);
-            if(!members.length) return '';
-            const avgProg = Math.round(members.reduce((s,l)=>s+l.prog,0)/members.length);
-            return `
-            <div style="margin-bottom:14px">
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px">
-                <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">${dept}</span>
-                <span style="font-size:11px;color:var(--text2)">${members.length} member${members.length>1?'s':''} · avg ${avgProg}%</span>
-              </div>
-              ${members.map(l=>`
-              <div class="learner-row" style="padding:7px 0">
-                <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
-                <div style="flex:1">
-                  <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-                    <span style="font-size:13px;font-weight:500">${l.name}</span>
-                    <span style="font-size:11px;color:var(--text3)">${l.prog}%</span>
-                  </div>
-                  <div class="progress-bar" style="margin:0 0 2px"><div class="progress-fill ${l.prog===100?'green':l.prog>60?'':'amber'}" style="width:${l.prog}%"></div></div>
-                  ${l.overdue>0?`<div style="font-size:10px;color:var(--danger)">${l.overdue} overdue</div>`:''}
+        ${Object.entries(deptMap).map(([dept,members])=>{
+          const avgProg=Math.round(members.reduce((s,l)=>s+l.prog,0)/members.length);
+          return `
+          <div style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:6px">
+              <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">${dept}</span>
+              <span style="font-size:11px;color:var(--text2)">${members.length} member${members.length>1?'s':''} · avg ${avgProg}%</span>
+            </div>
+            ${members.map(l=>`
+            <div class="learner-row" style="padding:7px 0">
+              <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+                  <span style="font-size:13px;font-weight:500">${l.name}</span>
+                  <span style="font-size:11px;color:var(--text3)">${l.prog}%</span>
                 </div>
-                <span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':'badge-warn'}">${l.status==='complete'?'Done':l.overdue>0?'Overdue':'Active'}</span>
-              </div>`).join('')}
-            </div>`;
-          }).join('');
-        })()}
+                <div class="progress-bar" style="margin:0 0 2px"><div class="progress-fill ${l.prog===100?'green':l.prog>60?'':'amber'}" style="width:${l.prog}%"></div></div>
+                ${l.overdue>0?`<div style="font-size:10px;color:var(--danger)">${l.overdue} overdue</div>`:''}
+              </div>
+              <span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':'badge-warn'}">${l.status==='complete'?'Done':l.overdue>0?'Overdue':'Active'}</span>
+            </div>`).join('')}
+          </div>`;
+        }).join('')}
       </div>
       <div class="card">
         <div class="card-title">Course Overview</div>
@@ -871,8 +927,6 @@ function filterDocsTab(val){
 
 
 function renderCourseLibrary(c){
-  const tr=document.getElementById('topbarRight');
-  tr.innerHTML=`<button class="btn btn-primary btn-sm" onclick="go('create')">+ New Course</button>`;
   c.innerHTML=`
   <div class="search-bar">
     <div class="search-input" style="max-width:280px"><input type="text" placeholder="Search courses..." oninput="filterCourses(this.value)"></div>
@@ -938,10 +992,7 @@ function openAddCourseToCat(catName){
         </div>
       </div>
     </div>
-    <div class="form-group"><label class="form-label">Requires manager sign-off?</label>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" checked> Yes</label>
-    </div>
-    <hr class="divider">
+<hr class="divider">
     <div style="display:flex;gap:8px">
       <button class="btn btn-primary" onclick="saveNewCourse('${catName.replace(/'/g,"\\'")}')">Add Course</button>
       <button class="btn" onclick="closeModal()">Cancel</button>
@@ -1140,6 +1191,13 @@ function courseCardHTML(co){
         <span class="badge badge-gray">${co.cat}</span>
         <span style="font-size:11px;color:var(--text3)">${co.mods} modules · ${co.dur}</span>
       </div>
+      ${(()=>{
+        const qs=COURSE_QUIZZES[co.id]||[];
+        const hasQ=qs.length&&qs[0].q;
+        const modQuizzes=(COURSE_MODULES[co.id]||[]).filter(m=>m.type==='quiz').length;
+        const total=modQuizzes+(hasQ?1:0);
+        return total?`<div style="font-size:11px;color:var(--accent);margin-top:4px">📝 ${total} quiz${total!==1?'zes':''}</div>`:'';
+      })()}
       <div class="progress-bar" style="margin-top:8px"><div class="progress-fill green" style="width:${pct}%"></div></div>
       <div style="font-size:11px;color:var(--text3);margin-top:3px">${co.completed}/${co.enrolled} completed · ${co.dur}</div>
     </div>
@@ -1222,7 +1280,6 @@ function openCourseModal(id){
     <div class="tab-bar">
       <div class="tab active" onclick="switchTab(this,'cm-info')">Course Info</div>
       <div class="tab" onclick="switchTab(this,'cm-mods')">Modules</div>
-      <div class="tab" onclick="switchTab(this,'cm-quiz')">Quiz Builder</div>
       <div class="tab" onclick="switchTab(this,'cm-sop')">SOP Updates <span class="badge badge-warn" style="margin-left:4px">${SOP_UPDATES[id].length}</span></div>
     </div>
 
@@ -1238,17 +1295,14 @@ function openCourseModal(id){
           </select>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Requires manager sign-off?</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" checked> Yes</label>
-      </div>
-    </div>
+</div>
 
     <div id="cm-mods" style="display:none">
       <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Drag ⠿ to reorder. Click a module to expand and edit content.</div>
       <div id="cm-modList">
         ${COURSE_MODULES[id].map((m,i)=>cmModRowHTML(id,m,i)).join('')}
       </div>
-      <button class="btn" style="margin-top:10px" onclick="cmAddMod(${id})">+ Add Module</button>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="openModuleWizard(${id})">+ Add Module</button>
     </div>
 
     <div id="cm-quiz" style="display:none">
@@ -1277,7 +1331,7 @@ function openCourseModal(id){
 
 function cmModRowHTML(courseId, m, i){
   const uid='cm_'+courseId+'_'+i;
-  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
+  const icons={doc:'📄',video:'▶️',quiz:'📝'};
   const blocks=(m.blocks||[]);
   const blocksHTML=blocks.map((b,bi)=>cmBlockHTML(uid,b,bi)).join('');
 
@@ -1301,7 +1355,7 @@ function cmModRowHTML(courseId, m, i){
           <option ${m.type==='video'?'selected':''} value="video">▶️ Video</option>
           <option ${m.type==='quiz'?'selected':''} value="quiz">📝 Quiz</option>
         </select>
-        <span class="badge ${m.status==='published'?'badge-success':'badge-gray'}" onclick="toggleModStatus(this)" style="cursor:pointer">${m.status==='published'?'Published':'Draft'}</span>
+        <span class="badge ${m.status==='published'?'badge-success':'badge-warn'}" onclick="toggleModStatus(this)" style="cursor:pointer;user-select:none" title="Click to toggle Published/Draft">${m.status==='published'?'✅ Published':'⚠️ Draft — click to publish'}</span>
         <button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="this.closest('.mod-block').remove()">Remove</button>
       </div>
     </div>
@@ -1321,6 +1375,8 @@ function cmModRowHTML(courseId, m, i){
           <button class="btn btn-sm" onclick="addModBlock('${uid}','link')">🔗 Link / Button</button>
           <button class="btn btn-sm" onclick="addModBlock('${uid}','file')">📎 Upload File</button>
           <button class="btn btn-sm" onclick="addModBlock('${uid}','image')">🖼️ Image</button>
+          <button class="btn btn-sm" style="border-color:var(--brand-gold);color:var(--accent)" onclick="addModBlock('${uid}','upload')">📤 Learner Upload</button>
+          <button class="btn btn-sm" style="border-color:var(--brand-gold);color:var(--accent)" onclick="addModBlock('${uid}','form')">📝 Form</button>
         </div>
       </div>
     </div>
@@ -1382,12 +1438,91 @@ function cmBlockHTML(uid, b, bi){
         <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
       </div>
       <div style="padding:10px;background:var(--surface)">
-        <input type="text" value="${b.val||''}" placeholder="Paste image URL — e.g. https://..." style="font-size:12px">
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Paste a direct image URL or Google Drive image share link.</div>
+        <input type="text" value="${b.val||''}" placeholder="Paste image URL (https://...) or Google Drive share link" style="font-size:12px;margin-bottom:8px" oninput="previewImg(this)">
+        ${b.val?`<img src="${b.val}" style="max-width:100%;border-radius:var(--radius-sm);display:block" onerror="this.style.display='none'" id="imgPreview">`:
+        `<div style="height:80px;background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3)" id="imgPreview">Image preview will appear here</div>`}
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">💡 For Google Drive: File → Share → Copy link, then paste here. Make sure sharing is set to "Anyone with the link".</div>
+      </div>
+    </div>`;
+
+  if(b.type==='upload') return `
+    <div class="cm-block" data-type="upload" style="margin-bottom:10px;border:1px solid var(--brand-gold);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--accent-bg);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--brand-gold)">
+        <span style="font-size:12px;color:var(--accent)">📤 Learner Upload (Required)</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <div style="padding:10px;background:var(--surface);display:flex;flex-direction:column;gap:8px">
+        <input type="text" value="${b.label||''}" placeholder="Upload label — e.g. Upload a copy of your license" style="font-size:12px">
+        <input type="text" value="${b.instructions||''}" placeholder="Instructions — e.g. Must be a clear photo or scanned PDF" style="font-size:12px">
+        <div style="font-size:11px;color:var(--text3)">⚠️ This will be a <strong>required</strong> upload. Learner cannot complete the module without uploading. Manager will be notified when submitted.</div>
+      </div>
+    </div>`;
+
+  if(b.type==='form') return `
+    <div class="cm-block" data-type="form" style="margin-bottom:10px;border:1px solid var(--brand-gold);border-radius:var(--radius);overflow:hidden">
+      <div style="background:var(--accent-bg);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--brand-gold)">
+        <span style="font-size:12px;color:var(--accent)">📝 Form</span>
+        <button class="btn btn-sm btn-danger" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="this.closest('.cm-block').remove()">✕</button>
+      </div>
+      <div style="padding:12px;background:var(--surface)">
+        <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px">Form Fields</div>
+        <div id="formFields_${b._uid||Date.now()}">
+          ${(b.fields||[{type:'text',label:'',placeholder:''}]).map((f,fi)=>`
+          <div class="form-field-row" style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <select style="width:110px;font-size:11px">
+              <option ${f.type==='text'?'selected':''}>text</option>
+              <option ${f.type==='date'?'selected':''}>date</option>
+              <option ${f.type==='textarea'?'selected':''}>textarea</option>
+              <option ${f.type==='select'?'selected':''}>select</option>
+              <option ${f.type==='checkbox'?'selected':''}>checkbox</option>
+            </select>
+            <input type="text" value="${f.label||''}" placeholder="Field label" style="flex:1;font-size:12px">
+            <input type="text" value="${f.placeholder||''}" placeholder="Placeholder / options" style="flex:1;font-size:12px">
+            <button class="btn btn-sm btn-danger" style="padding:2px 7px;font-size:11px" onclick="this.closest('.form-field-row').remove()">✕</button>
+          </div>`).join('')}
+        </div>
+        <button class="btn btn-sm" onclick="addFormField(this)" style="margin-top:4px;font-size:11px">+ Add Field</button>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px">Learner must submit the form to complete this module.</div>
       </div>
     </div>`;
 
   return '';
+}
+
+function previewImg(input){
+  const preview=input.nextElementSibling;
+  if(!preview) return;
+  const url=convertImageUrl(input.value.trim());
+  if(url){
+    preview.outerHTML=`<img src="${url}" style="max-width:100%;border-radius:var(--radius-sm);display:block;margin-top:4px" onerror="this.style.display='none'" id="imgPreview">`;
+  }
+}
+
+function convertImageUrl(url){
+  if(!url) return '';
+  // Convert Google Drive share link to direct image URL
+  const gdMatch=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if(gdMatch) return `https://drive.google.com/uc?export=view&id=${gdMatch[1]}`;
+  // Convert Google Drive open link
+  const gdMatch2=url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if(gdMatch2) return `https://drive.google.com/uc?export=view&id=${gdMatch2[1]}`;
+  return url;
+}
+
+function addFormField(btn){
+  const container=btn.previousElementSibling;
+  if(!container) return;
+  const row=document.createElement('div');
+  row.className='form-field-row';
+  row.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:6px';
+  row.innerHTML=`
+    <select style="width:110px;font-size:11px">
+      <option>text</option><option>date</option><option>textarea</option><option>select</option><option>checkbox</option>
+    </select>
+    <input type="text" placeholder="Field label" style="flex:1;font-size:12px">
+    <input type="text" placeholder="Placeholder / options" style="flex:1;font-size:12px">
+    <button class="btn btn-sm btn-danger" style="padding:2px 7px;font-size:11px" onclick="this.closest('.form-field-row').remove()">✕</button>`;
+  container.appendChild(row);
 }
 
 function addModBlock(uid, type){
@@ -1397,11 +1532,329 @@ function addModBlock(uid, type){
   const tmp=document.createElement('div');
   tmp.innerHTML=cmBlockHTML(uid,{type,val:'',label:''},bi);
   container.appendChild(tmp.firstElementChild);
-  // scroll into view
   tmp.firstElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 
+
+function openModuleWizard(courseId){
+  let wiz={step:1, title:'', type:'doc', blocks:[], status:'published'};
+
+  function render(){
+    const mc=document.getElementById('modalContent');
+    if(wiz.step===1){
+      mc.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div>
+            <div style="font-size:17px;font-weight:600">Add New Module</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Step 1 of 3 — Name & Type</div>
+          </div>
+          <button class="btn btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        ${wizSteps()}
+        <div class="form-group" style="margin-bottom:20px">
+          <label class="form-label">Module Name</label>
+          <input type="text" id="wizTitle" value="${wiz.title}" placeholder="e.g. Our Core Values, Day 1 Checklist..." style="font-size:14px">
+        </div>
+        <div class="form-label" style="margin-bottom:10px">Module Type</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px">
+          ${[
+            {t:'doc',icon:'📄',label:'Reading',desc:'Text, links, images, forms'},
+            {t:'video',icon:'▶️',label:'Video',desc:'Embed a video'},
+            {t:'quiz',icon:'📝',label:'Quiz',desc:'Knowledge check'},
+          ].map(opt=>`
+          <div onclick="document.querySelectorAll('.wiz-type').forEach(e=>{e.style.borderColor='var(--border)';e.style.background='var(--surface)'});this.style.borderColor='var(--brand-gold)';this.style.background='var(--accent-bg)';_wiz.type='${opt.t}'"
+            class="wiz-type" style="border:2px solid ${wiz.type===opt.t?'var(--brand-gold)':'var(--border)'};border-radius:var(--radius-lg);padding:14px;text-align:center;cursor:pointer;transition:all 0.15s">
+            <div style="font-size:24px;margin-bottom:6px">${opt.icon}</div>
+            <div style="font-size:13px;font-weight:600">${opt.label}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">${opt.desc}</div>
+          </div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="wizNext1(${courseId})">Next: Add Content →</button>
+          <button class="btn" onclick="closeModal()">Cancel</button>
+        </div>`;
+    } else if(wiz.step===2){
+      const pendingForm=window.wizPendingBlock?wizInlineForm(window.wizPendingBlock):'';
+      mc.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div>
+            <div style="font-size:17px;font-weight:600">${wiz.title}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Step 2 of 3 — Add Content</div>
+          </div>
+          <button class="btn btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        ${wizSteps()}
+        ${wiz.type==='quiz'?`
+        <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Add your quiz questions below. Learners must score 75% to pass.</div>
+        <div id="wizQuizQuestions">
+          ${(wiz.quizQuestions||[]).map((q,qi)=>`
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;background:var(--surface)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:600;color:var(--text3)">Question ${qi+1}</span>
+              <button class="btn btn-sm btn-danger" style="padding:2px 7px;font-size:11px" onclick="_wiz.quizQuestions.splice(${qi},1);_wizRender()">✕</button>
+            </div>
+            <input type="text" value="${q.q}" placeholder="Question text..." style="font-size:13px;margin-bottom:10px" oninput="_wiz.quizQuestions[${qi}].q=this.value">
+            ${q.opts.map((o,oi)=>`
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 8px;border-radius:var(--radius);border:1px solid ${q.correct===oi?'var(--success)':'var(--border)'};background:${q.correct===oi?'var(--success-bg)':'transparent'}">
+              <input type="radio" name="wqCorrect${qi}" ${q.correct===oi?'checked':''} onchange="_wiz.quizQuestions[${qi}].correct=${oi};_wizRender()" style="flex-shrink:0;width:auto;cursor:pointer">
+              <span style="font-size:11px;font-weight:600;color:var(--text3);width:14px">${String.fromCharCode(65+oi)}</span>
+              <input type="text" value="${o}" placeholder="Option ${String.fromCharCode(65+oi)}..." style="flex:1;font-size:12px;background:transparent;border:none;padding:0" oninput="_wiz.quizQuestions[${qi}].opts[${oi}]=this.value">
+              ${q.correct===oi?'<span style="font-size:10px;color:var(--success);font-weight:600">✓ Correct</span>':''}
+            </div>`).join('')}
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">● Select the correct answer using the radio button</div>
+          </div>`).join('')}
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-bottom:16px;width:100%" onclick="if(!_wiz.quizQuestions)_wiz.quizQuestions=[];_wiz.quizQuestions.push({q:'',opts:['','','',''],correct:0});_wizRender()">+ Add Question</button>
+        `:wiz.type==='video'?`
+        <div class="form-group">
+          <label class="form-label">Video URL</label>
+          <input type="text" id="wizVideoUrl" value="${wiz.blocks[0]?.val||''}" placeholder="Paste YouTube, Vimeo, or Loom URL..." style="font-size:13px">
+          <div style="font-size:11px;color:var(--text3);margin-top:5px">Supports YouTube, Vimeo, and Loom links.</div>
+        </div>
+        `:`
+        ${wiz.blocks.length?`<div style="margin-bottom:12px">
+          ${wiz.blocks.map((b,bi)=>wizBlockPreview(b,bi)).join('')}
+        </div>`:''}
+        ${pendingForm?pendingForm:`
+        <div style="border:1px dashed var(--border2);border-radius:var(--radius);padding:12px;background:var(--surface2);margin-bottom:16px">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Add a content block</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm" onclick="wizAddBlock('text')">✏️ Write Text</button>
+            <button class="btn btn-sm" onclick="wizAddBlock('link')">🔗 Link / Button</button>
+            <button class="btn btn-sm" onclick="wizAddBlock('image')">🖼️ Image</button>
+            <button class="btn btn-sm" onclick="wizAddBlock('file')">📎 File</button>
+            <button class="btn btn-sm" onclick="wizAddBlock('form')">📝 Form</button>
+            <button class="btn btn-sm" style="border-color:var(--brand-gold);color:var(--accent)" onclick="wizAddBlock('upload')">📤 Upload</button>
+          </div>
+        </div>`}
+        `}
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-primary" onclick="wizNext2(${courseId})">Next: Review →</button>
+          <button class="btn" onclick="_wiz.step=1;wizPendingBlock=null;_wizRender()">← Back</button>
+        </div>`;
+    } else {
+      // Step 3 — Review
+      mc.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div>
+            <div style="font-size:17px;font-weight:600">Review & Save</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Step 3 of 3</div>
+          </div>
+          <button class="btn btn-sm" onclick="closeModal()">✕</button>
+        </div>
+        ${wizSteps()}
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="font-size:24px">${{doc:'📄',video:'▶️',quiz:'📝'}[wiz.type]}</div>
+            <div>
+              <div style="font-size:15px;font-weight:600">${wiz.title}</div>
+              <div style="font-size:12px;color:var(--text3)">${{doc:'Reading',video:'Video',quiz:'Quiz'}[wiz.type]} module</div>
+            </div>
+          </div>
+          ${wiz.blocks.length?`
+          <div style="font-size:12px;color:var(--text2)">
+            ${wiz.blocks.map(b=>`<div style="padding:4px 0;border-bottom:1px solid var(--border)">
+              ${{text:'✏️ Text block',link:'🔗 Link: '+b.label,image:'🖼️ Image',file:'📎 File: '+b.label,form:'📝 Form ('+((b.fields||[]).length)+' fields)',upload:'📤 Upload: '+b.label}[b.type]||b.type}
+            </div>`).join('')}
+          </div>`:wiz.type==='quiz'?`<div style="font-size:12px;color:var(--text2)">📝 ${(wiz.quizQuestions||[]).filter(q=>q.q.trim()).length} question${(wiz.quizQuestions||[]).filter(q=>q.q.trim()).length!==1?'s':''} added</div>`:`<div style="font-size:12px;color:var(--text3);font-style:italic">No content blocks — you can add them later by editing the module.</div>`}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Visibility</label>
+          <div style="display:flex;gap:10px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="wizStatus" value="published" checked> Publish immediately</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="wizStatus" value="draft"> Save as draft</label>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="wizSave(${courseId})">✓ Save Module</button>
+          <button class="btn" onclick="_wiz.step=2;_wizRender()">← Back</button>
+        </div>`;
+    }
+    document.getElementById('modalBg').classList.add('open');
+  }
+
+  function wizSteps(){
+    return `<div style="display:flex;align-items:center;gap:0;margin-bottom:20px">
+      ${[1,2,3].map(s=>`
+      <div style="display:flex;align-items:center;flex:1">
+        <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;
+          background:${s<=wiz.step?'var(--brand-gold)':'var(--border)'};color:${s<=wiz.step?'#000':'var(--text3)'}">
+          ${s<wiz.step?'✓':s}
+        </div>
+        <div style="font-size:11px;margin-left:6px;color:${s===wiz.step?'var(--text)':'var(--text3)'};font-weight:${s===wiz.step?'600':'400'}">
+          ${['Name & Type','Add Content','Review'][s-1]}
+        </div>
+        ${s<3?`<div style="flex:1;height:1px;background:${s<wiz.step?'var(--brand-gold)':'var(--border)'};margin:0 10px"></div>`:''}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  let wizType=wiz.type;
+  window.wizPendingBlock=null;
+  window._wiz=wiz;
+  window._wizRender=function(){render();};
+
+  window.wizNext1=function(courseId){
+    const title=document.getElementById('wizTitle')?.value.trim();
+    if(!title){toast('Please enter a module name.');return;}
+    wiz.title=title;
+    wiz.type=_wiz.type||'doc';
+    wiz.step=2;
+    render();
+  };
+
+  window.wizNext2=function(courseId){
+    if(wiz.type==='video'){
+      const url=document.getElementById('wizVideoUrl')?.value.trim();
+      if(url) wiz.blocks=[{type:'video',val:url}];
+    }
+    wiz.step=3;
+    render();
+  };
+
+  function wizInlineForm(type){
+    const forms={
+      text:`<div style="border:1px solid var(--brand-gold);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;background:var(--accent-bg)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">✏️ Write Text</div>
+        <textarea id="wbVal" rows="5" placeholder="Write your content here..." style="font-size:13px;line-height:1.7"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="wizConfirmBlock('text')">Add Block</button>
+          <button class="btn btn-sm" onclick="wizPendingBlock=null;render()">Cancel</button>
+        </div></div>`,
+      link:`<div style="border:1px solid var(--brand-gold);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;background:var(--accent-bg)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">🔗 Link / Button</div>
+        <input type="text" id="wbLabel" placeholder="Button label — e.g. Fill Out Team Form" style="margin-bottom:8px;font-size:12px">
+        <input type="text" id="wbVal" placeholder="URL — e.g. https://forms.google.com/..." style="font-size:12px">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="wizConfirmBlock('link')">Add Block</button>
+          <button class="btn btn-sm" onclick="wizPendingBlock=null;render()">Cancel</button>
+        </div></div>`,
+      image:`<div style="border:1px solid var(--brand-gold);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;background:var(--accent-bg)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">🖼️ Image</div>
+        <input type="text" id="wbVal" placeholder="Paste image URL — e.g. https://..." style="font-size:12px">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="wizConfirmBlock('image')">Add Block</button>
+          <button class="btn btn-sm" onclick="wizPendingBlock=null;render()">Cancel</button>
+        </div></div>`,
+      file:`<div style="border:1px solid var(--brand-gold);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;background:var(--accent-bg)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">📎 File</div>
+        <input type="text" id="wbLabel" placeholder="File label — e.g. Download Handbook" style="margin-bottom:8px;font-size:12px">
+        <input type="text" id="wbVal" placeholder="File URL or Google Drive share link" style="font-size:12px">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="wizConfirmBlock('file')">Add Block</button>
+          <button class="btn btn-sm" onclick="wizPendingBlock=null;render()">Cancel</button>
+        </div></div>`,
+      upload:`<div style="border:1px solid var(--brand-gold);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;background:var(--accent-bg)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">📤 Learner Upload</div>
+        <input type="text" id="wbLabel" placeholder="Upload label — e.g. Upload a copy of your license" style="margin-bottom:8px;font-size:12px">
+        <input type="text" id="wbVal" placeholder="Instructions (optional)" style="font-size:12px">
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="wizConfirmBlock('upload')">Add Block</button>
+          <button class="btn btn-sm" onclick="wizPendingBlock=null;render()">Cancel</button>
+        </div></div>`,
+      form:`<div style="border:1px solid var(--brand-gold);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;background:var(--accent-bg)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">📝 Form</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Add fields to your form:</div>
+        <div id="wbFormFields">
+          <div class="wb-field-row" style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+            <select style="width:90px;font-size:11px"><option>text</option><option>date</option><option>textarea</option><option>select</option><option>checkbox</option></select>
+            <input type="text" placeholder="Field label" style="flex:1;font-size:12px">
+            <input type="text" placeholder="Placeholder / options" style="flex:1;font-size:12px">
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="addWbField()" style="margin-top:6px;font-size:11px">+ Add Field</button>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="wizConfirmBlock('form')">Add Form</button>
+          <button class="btn btn-sm" onclick="wizPendingBlock=null;render()">Cancel</button>
+        </div></div>`,
+    };
+    return forms[type]||'';
+  }
+
+  window.wizAddBlock=function(type){
+    window.wizPendingBlock=type;
+    render();
+  };
+
+  window.addWbField=function(){
+    const container=document.getElementById('wbFormFields');
+    if(!container) return;
+    const row=document.createElement('div');
+    row.className='wb-field-row';
+    row.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';
+    row.innerHTML=`<select style="width:90px;font-size:11px"><option>text</option><option>date</option><option>textarea</option><option>select</option><option>checkbox</option></select>
+      <input type="text" placeholder="Field label" style="flex:1;font-size:12px">
+      <input type="text" placeholder="Placeholder / options" style="flex:1;font-size:12px">
+      <button class="btn btn-sm btn-danger" style="padding:2px 7px" onclick="this.closest('.wb-field-row').remove()">✕</button>`;
+    container.appendChild(row);
+  };
+
+  window.wizConfirmBlock=function(type){
+    let block=null;
+    const val=document.getElementById('wbVal')?.value.trim();
+    const label=document.getElementById('wbLabel')?.value.trim();
+    if(type==='text'){
+      if(!val){toast('Please write some content.');return;}
+      block={type:'text',val};
+    } else if(type==='link'){
+      if(!label||!val){toast('Please fill in both the label and URL.');return;}
+      block={type:'link',label,val};
+    } else if(type==='image'){
+      if(!val){toast('Please paste an image URL.');return;}
+      block={type:'image',val};
+    } else if(type==='file'){
+      if(!label||!val){toast('Please fill in both the label and URL.');return;}
+      block={type:'file',label,val};
+    } else if(type==='upload'){
+      if(!label){toast('Please enter an upload label.');return;}
+      block={type:'upload',label,instructions:val||''};
+    } else if(type==='form'){
+      const rows=[...document.querySelectorAll('.wb-field-row')];
+      const fields=rows.map(r=>{
+        const inputs=r.querySelectorAll('input[type=text]');
+        const sel=r.querySelector('select');
+        return {type:sel?.value||'text',label:inputs[0]?.value.trim()||'',placeholder:inputs[1]?.value.trim()||''};
+      }).filter(f=>f.label);
+      if(!fields.length){toast('Please add at least one field with a label.');return;}
+      block={type:'form',fields};
+    }
+    if(block){
+      wiz.blocks.push(block);
+      window.wizPendingBlock=null;
+      render();
+    }
+  };
+
+  window.wizBlockPreview=function(b,bi){
+    const labels={text:'✏️ Text block',link:'🔗 '+b.label,image:'🖼️ Image',file:'📎 '+b.label,form:'📝 Form',upload:'📤 '+b.label};
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius);margin-bottom:6px">
+      <span style="font-size:13px;flex:1">${labels[b.type]||b.type}</span>
+      <button class="btn btn-sm btn-danger" style="padding:2px 7px" onclick="_wiz.blocks.splice(${bi},1);render()">✕</button>
+    </div>`;
+  };
+
+  window.wizSave=function(courseId){
+    const status=[...document.querySelectorAll('input[name=wizStatus]')].find(r=>r.checked)?.value||'published';
+    const newMod={t:wiz.title,type:wiz.type,status,blocks:wiz.blocks};
+    if(!COURSE_MODULES[courseId]) COURSE_MODULES[courseId]=[];
+    COURSE_MODULES[courseId].push(newMod);
+    const co=COURSES.find(c=>c.id===courseId);
+    if(co) co.mods=COURSE_MODULES[courseId].length;
+    // save quiz questions if it's a quiz module
+    if(wiz.type==='quiz'&&wiz.quizQuestions?.length){
+      if(!COURSE_QUIZZES[courseId]) COURSE_QUIZZES[courseId]=[];
+      // replace course quiz with these questions
+      COURSE_QUIZZES[courseId]=wiz.quizQuestions.filter(q=>q.q.trim());
+    }
+    lsSave();
+    toast(`✓ "${wiz.title}" module added!`);
+    closeModal();
+    openCourseModal(courseId);
+  };
+
+  render();
+}
 
 function cmAddMod(courseId){
   const list=document.getElementById('cm-modList');
@@ -1415,54 +1868,62 @@ function cmAddMod(courseId){
 
 
 function toggleModStatus(badge){
-  const isPub=badge.textContent.trim()==='Published';
-  badge.textContent=isPub?'Draft':'Published';
-  badge.className='badge '+(isPub?'badge-gray':'badge-success');
+  const isPub=badge.textContent.includes('Published');
+  badge.textContent=isPub?'⚠️ Draft — click to publish':'✅ Published';
+  badge.className='badge '+(isPub?'badge-warn':'badge-success');
 }
 
 
 function saveCourseChanges(id){
+  const co=COURSES.find(c=>c.id===id);
+
+  // Save Course Info tab fields
+  if(co){
+    const titleInput=document.querySelector('#cm-info input[type=text]');
+    const catSelect=document.querySelector('#cm-info select');
+    const durSelect=document.querySelectorAll('#cm-info select')[1];
+    if(titleInput?.value.trim()) co.title=titleInput.value.trim();
+    if(catSelect?.value) co.cat=catSelect.value;
+    if(durSelect?.value) co.dur=durSelect.value;
+  }
+
   // Save modules from DOM
   const modList=document.getElementById('cm-modList');
   if(modList){
     const blocks=modList.querySelectorAll('.mod-block');
     COURSE_MODULES[id]=[...blocks].map(block=>{
-      const uid=block.dataset.uid;
       const title=block.querySelector('.mod-title-input')?.value||'Untitled Module';
       const typeSelect=block.querySelector('select');
       const type=typeSelect?.value||'doc';
       const statusBadge=block.querySelector('.badge');
-      const status=statusBadge?.textContent.trim().toLowerCase()==='published'?'published':'draft';
+      const status=statusBadge?.textContent.includes('Published')?'published':'draft';
 
-      // Read content blocks
       const contentBlocks=[];
       block.querySelectorAll('.cm-block').forEach(cb=>{
         const btype=cb.dataset.type;
         const inputs=cb.querySelectorAll('input[type=text]');
         const textarea=cb.querySelector('textarea');
-        if(btype==='text'){
-          contentBlocks.push({type:'text',val:textarea?.value||''});
-        } else if(btype==='video'){
-          contentBlocks.push({type:'video',val:inputs[0]?.value||''});
-        } else if(btype==='link'){
-          contentBlocks.push({type:'link',label:inputs[0]?.value||'',val:inputs[1]?.value||''});
-        } else if(btype==='file'){
-          contentBlocks.push({type:'file',label:inputs[0]?.value||'',val:inputs[1]?.value||''});
-        } else if(btype==='image'){
-          contentBlocks.push({type:'image',val:inputs[0]?.value||''});
+        if(btype==='text') contentBlocks.push({type:'text',val:textarea?.value||''});
+        else if(btype==='video') contentBlocks.push({type:'video',val:inputs[0]?.value||''});
+        else if(btype==='link') contentBlocks.push({type:'link',label:inputs[0]?.value||'',val:inputs[1]?.value||''});
+        else if(btype==='file') contentBlocks.push({type:'file',label:inputs[0]?.value||'',val:inputs[1]?.value||''});
+        else if(btype==='image') contentBlocks.push({type:'image',val:inputs[0]?.value||''});
+        else if(btype==='upload') contentBlocks.push({type:'upload',label:inputs[0]?.value||'Upload Required Document',instructions:inputs[1]?.value||''});
+        else if(btype==='form'){
+          const fields=[...cb.querySelectorAll('.form-field-row')].map(row=>{
+            const selects=row.querySelectorAll('select');
+            const ins=row.querySelectorAll('input[type=text]');
+            return {type:selects[0]?.value||'text',label:ins[0]?.value||'',placeholder:ins[1]?.value||''};
+          }).filter(f=>f.label);
+          contentBlocks.push({type:'form',fields});
         }
       });
 
       return {t:title,type,status,blocks:contentBlocks};
     });
 
-    // Update module count on course
-    const co=COURSES.find(c=>c.id===id);
     if(co) co.mods=COURSE_MODULES[id].length;
   }
-
-  // Save quiz
-  saveCourseQuiz(id);
 
   lsSave();
   toast('Course saved!');
@@ -1618,7 +2079,6 @@ function renderCreate(c){
     <div class="tab-bar">
       <div class="tab active" onclick="switchTab(this,'tc-info')">1. Course Info</div>
       <div class="tab" onclick="switchTab(this,'tc-mods')">2. Modules</div>
-      <div class="tab" onclick="switchTab(this,'tc-quiz')">3. Quiz Builder</div>
       <div class="tab" onclick="switchTab(this,'tc-assign')">4. Assign Learners</div>
     </div>
     <div id="tc-info">
@@ -1716,7 +2176,7 @@ function switchTab(el,id){
   const container=el.closest('.card')||el.closest('.modal')||el.closest('#modalContent');
   if(container) container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['tc-info','tc-mods','tc-quiz','tc-assign','cm-info','cm-mods','cm-quiz','cm-sop','pm-progress','pm-profile','pm-access','eu-info','eu-courses','eu-access'].forEach(tid=>{
+  ['tc-info','tc-mods','tc-assign','cm-info','cm-mods','cm-sop','pm-progress','pm-profile','pm-activity','pm-access','eu-info','eu-courses','eu-access'].forEach(tid=>{
     const el2=document.getElementById(tid);
     if(el2) el2.style.display=tid===id?'block':'none';
   });
@@ -1751,6 +2211,8 @@ function modRowHTML(title, type, idx){
           <button class="btn btn-sm" onclick="addModBlock('${uid}','link')">🔗 Link / Button</button>
           <button class="btn btn-sm" onclick="addModBlock('${uid}','file')">📎 Upload File</button>
           <button class="btn btn-sm" onclick="addModBlock('${uid}','image')">🖼️ Image</button>
+          <button class="btn btn-sm" style="border-color:var(--brand-gold);color:var(--accent)" onclick="addModBlock('${uid}','upload')">📤 Learner Upload</button>
+          <button class="btn btn-sm" style="border-color:var(--brand-gold);color:var(--accent)" onclick="addModBlock('${uid}','form')">📝 Form</button>
         </div>
       </div>
     </div>
@@ -1767,8 +2229,8 @@ function toggleModExpand(uid){
 }
 
 function updateModBlockIcon(sel){
-  const icons={doc:'📄',video:'▶️',quiz:'📝',signoff:'✅'};
-  const classes={doc:'doc',video:'video',quiz:'quiz',signoff:'signoff'};
+  const icons={doc:'📄',video:'▶️',quiz:'📝'};
+  const classes={doc:'doc',video:'video',quiz:'quiz'};
   const row=sel.closest('.mod-block');
   const icon=row.querySelector('.module-icon');
   if(icon){icon.textContent=icons[sel.value]||'📄';icon.className='module-icon '+(classes[sel.value]||'doc');}
@@ -1994,6 +2456,7 @@ function openPersonModal(name){
     <div class="tab-bar">
       <div class="tab active" onclick="switchTab(this,'pm-progress')">Learning Progress</div>
       <div class="tab" onclick="switchTab(this,'pm-profile')">Profile</div>
+      <div class="tab" onclick="switchTab(this,'pm-activity')">Activity Log</div>
       <div class="tab" onclick="switchTab(this,'pm-access')">Access & Security</div>
     </div>
 
@@ -2043,7 +2506,13 @@ function openPersonModal(name){
         <select><option>Learner</option><option>Manager</option><option>Admin</option><option>Executive</option></select>
       </div>
       <div class="form-group">
-        <label class="form-label">Assigned Courses</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <label class="form-label" style="margin:0">Assigned Courses</label>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="document.querySelectorAll('.course-assign-cb').forEach(cb=>cb.checked=true)" style="font-size:11px;padding:3px 10px">Select All</button>
+            <button class="btn btn-sm" onclick="document.querySelectorAll('.course-assign-cb').forEach(cb=>cb.checked=false)" style="font-size:11px;padding:3px 10px">Clear All</button>
+          </div>
+        </div>
         ${COURSES.map(co=>`
         <label style="display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:1px solid var(--border)">
           <input type="checkbox" class="course-assign-cb" data-id="${co.id}" ${l.assignedCourses&&l.assignedCourses.includes(co.id)?'checked':''}>
@@ -2052,6 +2521,25 @@ function openPersonModal(name){
           <input type="date" style="font-size:11px;padding:3px 6px;width:130px" placeholder="Due date">
         </label>`).join('')}
       </div>
+    </div>
+
+    <div id="pm-activity" style="display:none">
+      ${(()=>{
+        const activity = getPersonActivity(l.name);
+        if(!activity.length) return `<div class="empty" style="padding:24px 0">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">No activity yet</div>
+          <div style="font-size:13px">Activity will appear here once ${l.name.split(' ')[0]} starts using the LMS.</div>
+        </div>`;
+        return activity.map(a=>`
+        <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:18px;flex-shrink:0">${a.icon}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;color:var(--text)">${a.text}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${a.date}</div>
+          </div>
+        </div>`).join('');
+      })()}
     </div>
 
     <div id="pm-access" style="display:none">
@@ -2078,6 +2566,18 @@ function openPersonModal(name){
       <button class="btn" onclick="closeModal()">Cancel</button>
     </div>`;
   document.getElementById('modalBg').classList.add('open');
+}
+
+// ─── ACTIVITY LOG ──────────────────────────────────────────────────────────
+const ACTIVITY_LOG = [];
+
+function logActivity(learnerName, icon, text){
+  const date = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  ACTIVITY_LOG.unshift({learner:learnerName, icon, text, date});
+}
+
+function getPersonActivity(name){
+  return ACTIVITY_LOG.filter(a=>a.learner===name);
 }
 
 function savePersonModal(name){
@@ -2229,54 +2729,130 @@ function swSOTab(el,id){
 // ─── REPORTS ───────────────────────────────────────────────────────────────
 function renderReports(c){
   const tr=document.getElementById('topbarRight');
-  tr.innerHTML=`
-    <button class="btn btn-sm" onclick="toast('CSV exported.')">↓ CSV</button>
-    <button class="btn btn-sm" onclick="toast('PDF report generated.')">↓ PDF</button>`;
+  tr.innerHTML=`<button class="btn btn-sm" onclick="toast('CSV exported.')">↓ Export CSV</button>`;
+
+  const isAdmin=S.role==='admin';
+  const u=USERS[S.role];
+  const teamMembers=isAdmin?LEARNERS:LEARNERS.filter(l=>l.manager===u.name);
+
+  const total=teamMembers.length;
+  const completed=teamMembers.filter(l=>l.status==='complete').length;
+  const inProgress=teamMembers.filter(l=>l.status==='in-progress').length;
+  const overdue=teamMembers.filter(l=>l.overdue>0).length;
+  const notStarted=teamMembers.filter(l=>l.status==='not-started').length;
+
+  const depts={};
+  teamMembers.forEach(l=>{
+    if(!depts[l.dept]) depts[l.dept]={total:0,complete:0};
+    depts[l.dept].total++;
+    if(l.status==='complete') depts[l.dept].complete++;
+  });
+
   c.innerHTML=`
-  <div class="search-bar">
-    <select style="width:auto"><option>All Departments</option><option>Finance</option><option>Human Resources</option><option>Marketing</option><option>Operations</option><option>Sales</option></select>
-    <select style="width:auto"><option>Last 30 days</option><option>Last 90 days</option><option>All time</option></select>
-  </div>
+  <!-- Metrics -->
   <div class="grid4 section-gap">
-    <div class="metric-card"><div class="metric-label">Total Learners</div><div class="metric-value">47</div></div>
-    <div class="metric-card"><div class="metric-label">Completions</div><div class="metric-value">29</div><div class="metric-delta up">↑ 8 vs last month</div></div>
-    <div class="metric-card"><div class="metric-label">Avg Quiz Score</div><div class="metric-value">84%</div><div class="metric-delta up">↑ 3%</div></div>
-    <div class="metric-card"><div class="metric-label">Avg Days to Complete</div><div class="metric-value">11d</div></div>
+    <div class="metric-card"><div class="metric-label">Total Team</div><div class="metric-value">${total}</div></div>
+    <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--success)">${completed}</div><div class="metric-delta">${total?Math.round(completed/total*100):0}% of team</div></div>
+    <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value" style="color:var(--accent)">${inProgress}</div></div>
+    <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" style="color:${overdue?'var(--danger)':'var(--success)'}">${overdue}</div><div class="metric-delta ${overdue?'down':'up'}">${overdue?'Need follow-up':'All on track ✓'}</div></div>
   </div>
+
+  <!-- Full width team table -->
+  <div class="card section-gap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="card-title" style="margin:0">Team Progress</div>
+      <div style="font-size:12px;color:var(--text3)">Click any column to sort</div>
+    </div>
+    <div class="table-wrap">
+      <table id="reportTeamTable">
+        <thead><tr>
+          <th onclick="sortReportTable(0)" style="cursor:pointer">Name <span id="rs0">↕</span></th>
+          <th onclick="sortReportTable(1)" style="cursor:pointer">Department <span id="rs1">↕</span></th>
+          <th onclick="sortReportTable(2)" style="cursor:pointer">Progress <span id="rs2">↕</span></th>
+          <th onclick="sortReportTable(3)" style="cursor:pointer">Overdue <span id="rs3">↕</span></th>
+          <th onclick="sortReportTable(4)" style="cursor:pointer">Status <span id="rs4">↕</span></th>
+        </tr></thead>
+        <tbody id="reportTeamBody">
+          ${[...teamMembers].sort((a,b)=>b.prog-a.prog).map(l=>`
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:8px">
+              <div class="av av-sm" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
+              <div><div style="font-weight:500">${l.name}</div><div style="font-size:11px;color:var(--text3)">${l.title}</div></div>
+            </div></td>
+            <td>${l.dept}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0">
+                  <div style="height:100%;background:${l.prog===100?'var(--success)':'var(--brand-gold)'};width:${l.prog}%"></div>
+                </div>
+                <span style="font-size:12px;color:var(--text2)">${l.prog}%</span>
+              </div>
+            </td>
+            <td>${l.overdue>0?`<span class="badge badge-danger">${l.overdue} overdue</span>`:`<span style="font-size:12px;color:var(--text3)">—</span>`}</td>
+            <td><span class="badge ${l.status==='complete'?'badge-success':l.overdue>0?'badge-danger':l.status==='not-started'?'badge-gray':'badge-warn'}">${l.status==='complete'?'✓ Done':l.overdue>0?'Overdue':l.status==='not-started'?'Not Started':'In Progress'}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Two smaller cards below -->
   <div class="grid2">
     <div class="card">
-      <div class="card-title">Completion by Course</div>
+      <div class="card-title">By Department</div>
+      ${Object.entries(depts).sort((a,b)=>b[1].total-a[1].total).map(([dept,d])=>{
+        const pct=Math.round(d.complete/d.total*100);
+        return `<div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="font-weight:500">${dept}</span>
+            <span style="color:var(--text2)">${d.complete}/${d.total} · ${pct}%</span>
+          </div>
+          <div class="progress-bar" style="height:8px;margin:0"><div class="progress-fill ${pct===100?'green':pct>50?'':'amber'}" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title">By Course</div>
       ${COURSES.map(co=>{
-        const pct=Math.round(co.completed/co.enrolled*100);
-        return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:13px">
-          <div style="font-size:18px;width:24px;text-align:center">${co.emoji}</div>
-          <div style="flex:1">
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
-              <span style="font-weight:500">${co.title}</span>
-              <span style="color:var(--text2)">${pct}%</span>
+        const enrolled=teamMembers.filter(l=>l.assignedCourses?.includes(co.id)).length;
+        const done=teamMembers.filter(l=>l.assignedCourses?.includes(co.id)&&l.status==='complete').length;
+        const pct=enrolled?Math.round(done/enrolled*100):0;
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="font-size:20px;flex-shrink:0">${co.emoji}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+              <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${co.title}</span>
+              <span style="color:var(--text2);flex-shrink:0;margin-left:6px">${done}/${enrolled} · ${pct}%</span>
             </div>
-            <div class="progress-bar" style="margin:0"><div class="progress-fill ${pct>70?'green':pct>40?'':'amber'}" style="width:${pct}%"></div></div>
+            <div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill ${pct===100?'green':''}" style="width:${pct}%"></div></div>
           </div>
         </div>`;
       }).join('')}
     </div>
-    <div class="card">
-      <div class="card-title">Learner Leaderboard</div>
-      ${[...LEARNERS].sort((a,b)=>b.prog-a.prog).map((l,i)=>`
-      <div class="learner-row">
-        <div style="font-size:14px;font-weight:600;width:20px;color:var(--text3);text-align:center">${i+1}</div>
-        <div class="av av-md" style="background:${l.bg};color:${l.tc}">${l.ini}</div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:500">${l.name}</div><div style="font-size:11px;color:var(--text3)">${l.dept}</div></div>
-        <div style="text-align:right">
-          <div style="font-size:14px;font-weight:600">${l.prog}%</div>
-          <span class="badge ${l.status==='complete'?'badge-success':'badge-warn'}" style="font-size:10px">${l.status==='complete'?'Done':'Active'}</span>
-        </div>
-      </div>`).join('')}
-    </div>
   </div>`;
 }
 
-// ─── MY COURSES ─────────────────────────────────────────────────────────────
+let _reportSortCol=-1, _reportSortAsc=true;
+function sortReportTable(col){
+  const body=document.getElementById('reportTeamBody');
+  if(!body) return;
+  _reportSortAsc=_reportSortCol===col?!_reportSortAsc:true;
+  _reportSortCol=col;
+  [0,1,2,3,4].forEach(i=>{
+    const el=document.getElementById('rs'+i);
+    if(el) el.textContent=i===col?(_reportSortAsc?'↑':'↓'):'↕';
+  });
+  const rows=[...body.querySelectorAll('tr')];
+  rows.sort((a,b)=>{
+    const aVal=a.cells[col]?.textContent.trim()||'';
+    const bVal=b.cells[col]?.textContent.trim()||'';
+    if(col===2||col===3) return (_reportSortAsc?1:-1)*(parseInt(aVal)||0-(parseInt(bVal)||0));
+    return (_reportSortAsc?1:-1)*aVal.localeCompare(bVal);
+  });
+  rows.forEach(r=>body.appendChild(r));
+}
+
 function renderMyCourses(c){
   const learner=LEARNERS.find(l=>l.name===USERS[S.role].name)||LEARNERS[0];
   const assignedIds=learner?.assignedCourses||COURSES.map(co=>co.id);
@@ -2311,6 +2887,16 @@ function renderMyCourses(c){
             <div class="course-thumb" style="background:${co.color}">${co.emoji}</div>
             <div class="course-body">
               <div class="course-title">${co.title}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+                <span style="font-size:11px;color:var(--text3)">${co.mods} modules</span>
+                ${(()=>{
+                  const qs=COURSE_QUIZZES[co.id]||[];
+                  const hasQ=qs.length&&qs[0].q;
+                  const modQs=(COURSE_MODULES[co.id]||[]).filter(m=>m.type==='quiz').length;
+                  const total=modQs+(hasQ?1:0);
+                  return total?`<span style="font-size:11px;color:var(--accent)">📝 ${total} quiz${total!==1?'zes':''}</span>`:'';
+                })()}
+              </div>
               <div class="progress-bar" style="margin-top:8px"><div class="progress-fill ${pct===100?'green':''}" style="width:${pct}%"></div></div>
               <div style="display:flex;justify-content:space-between;margin-top:4px">
                 <span style="font-size:11px;color:var(--text3)">${pct}% done</span>
@@ -2321,6 +2907,94 @@ function renderMyCourses(c){
         }).join('')}
       </div>
     </div>`).join('');
+}
+
+function submitLearnerForm(fid, courseId, modIdx){
+  const inputs=[...document.querySelectorAll(`[id^="${fid}_"]`)];
+  const responses={};
+  let allFilled=true;
+
+  // reset highlights
+  inputs.forEach(el=>{el.style.borderColor='';el.style.boxShadow='';});
+
+  inputs.forEach(el=>{
+    const label=el.closest('.form-group')?.querySelector('label')?.textContent||el.id;
+    const val=el.type==='checkbox'?el.checked:(el.value||'').trim();
+    const isEmpty=!val&&el.type!=='checkbox';
+    if(isEmpty){
+      allFilled=false;
+      el.style.borderColor='var(--danger)';
+      el.style.boxShadow='0 0 0 3px rgba(224,64,64,0.15)';
+      el.addEventListener('input',()=>{el.style.borderColor='';el.style.boxShadow='';},{once:true});
+    }
+    responses[label]=val;
+  });
+
+  if(!allFilled){toast('⚠️ Please fill in all highlighted fields.');return;}
+
+  if(!S.formResponses) S.formResponses={};
+  S.formResponses[courseId+'_'+modIdx]={responses,submittedAt:new Date().toLocaleString(),learner:USERS[S.role].name};
+  if(!S.completedModules) S.completedModules={};
+  if(!S.completedModules[courseId]) S.completedModules[courseId]=[];
+  if(!S.completedModules[courseId].includes(modIdx)) S.completedModules[courseId].push(modIdx);
+  const modName=COURSE_MODULES[courseId]?.[modIdx]?.t||'a module';
+  const courseName=COURSES.find(c=>c.id===courseId)?.title||'a course';
+  logActivity(USERS[S.role].name,'📝',`Submitted form in "${modName}" — ${courseName}`);
+  NOTIFICATIONS.unshift({id:Date.now(),icon:'📝',text:`${USERS[S.role].name} submitted a form in module ${modIdx+1}`,time:'Just now',unread:true,action:'people'});
+  renderNotifPanel();
+  toast('✓ Form submitted! Module marked complete.');
+  const mods=COURSE_MODULES[courseId]||[];
+  const next=mods.findIndex((_,i)=>i>modIdx&&!S.completedModules[courseId].includes(i));
+  S.activeModuleIdx[courseId]=next>=0?next:null;
+  renderCourseDetail(document.getElementById('mainContent'));
+}
+
+function handleLearnerUpload(uploadId, input){
+  const file=input.files[0];
+  if(!file) return;
+  const status=document.getElementById(uploadId+'_status');
+  if(status){
+    status.textContent=`✓ ${file.name} (${(file.size/1024).toFixed(0)}KB)`;
+    status.style.color='var(--success)';
+  }
+  // store upload record
+  if(!S.uploads) S.uploads={};
+  S.uploads[uploadId]={name:file.name,size:file.size,date:new Date().toLocaleDateString()};
+  // notify manager
+  toast(`✓ "${file.name}" uploaded! Your manager has been notified.`);
+  // add to notifications
+  NOTIFICATIONS.unshift({
+    id:Date.now(),icon:'📤',
+    text:`${USERS[S.role].name} uploaded "${file.name}" — please review`,
+    time:'Just now',unread:true,action:'people'
+  });
+  renderNotifPanel();
+}
+
+let _dashSortCol=-1, _dashSortAsc=true;
+function sortDashTable(col){
+  const body=document.getElementById('dashCourseBody');
+  if(!body) return;
+  _dashSortAsc = _dashSortCol===col ? !_dashSortAsc : true;
+  _dashSortCol=col;
+
+  // update sort indicators
+  [0,1,2,3].forEach(i=>{
+    const el=document.getElementById('sort'+i);
+    if(el) el.textContent = i===col ? (_dashSortAsc?'↑':'↓') : '↕';
+  });
+
+  const rows=[...body.querySelectorAll('tr')];
+  rows.sort((a,b)=>{
+    const aCell=a.cells[col]?.textContent.trim()||'';
+    const bCell=b.cells[col]?.textContent.trim()||'';
+    // sort progress numerically
+    if(col===2){
+      return (_dashSortAsc?1:-1)*(parseInt(aCell)-parseInt(bCell));
+    }
+    return (_dashSortAsc?1:-1)*aCell.localeCompare(bCell);
+  });
+  rows.forEach(r=>body.appendChild(r));
 }
 
 function openLearnerCourse(id){
@@ -2336,145 +3010,248 @@ function openLearnerCourse(id){
 function renderCourseDetail(c){
   const co=COURSES.find(x=>x.id===S.activeCourseId)||COURSES[0];
   const qs=S.quiz;
-  const mods=(COURSE_MODULES[co.id]||[]).filter(m=>m.status==='published'||m.status===undefined);
-  const hasVideo=mods.some(m=>m.type==='video');
-  const hasQuiz=mods.some(m=>m.type==='quiz');
-  const contentMods=mods.filter(m=>m.type!=='quiz');
-  const totalSteps=mods.length;
-  const doneSteps=mods.filter((m,i)=>{
-    if(m.type==='video') return S.videoWatched;
+  const mods=(COURSE_MODULES[co.id]||[]).filter(m=>m.status==='published'||!m.status);
+  const totalMods=mods.length;
+  if(!S.activeModuleIdx) S.activeModuleIdx={};
+  if(!S.completedModules) S.completedModules={};
+  if(!S.completedModules[co.id]) S.completedModules[co.id]=[];
+
+  const completedCount=mods.filter((m,i)=>{
     if(m.type==='quiz') return qs.done&&qs.score>=3;
-    return S.completedModules?.[co.id]?.includes(i);
+    return S.completedModules[co.id].includes(i);
   }).length;
-  const pct=mods.length?Math.round(doneSteps/totalSteps*100):0;
+  const pct=totalMods?Math.round(completedCount/totalMods*100):0;
 
   document.getElementById('pageTitle').textContent='';
   document.getElementById('pageCrumb').textContent='My Courses / '+co.title;
-  document.getElementById('topbarRight').innerHTML=`<button class="btn btn-sm" onclick="go('my-courses')">← Back to My Courses</button>`;
+  document.getElementById('topbarRight').innerHTML=`<button class="btn btn-sm" onclick="go('my-courses')">← Back</button>`;
 
-  // render content block for learner view
-  function renderBlock(b){
+  function renderBlock(b, modIdx){
     if(!b) return '';
-    if(b.type==='text') return `<div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-line;margin-bottom:12px">${b.val||''}</div>`;
+    if(b.type==='text') return `<div style="font-size:13px;line-height:1.9;color:var(--text);white-space:pre-line;margin-bottom:14px">${b.val||''}</div>`;
     if(b.type==='video'){
       const url=b.val||'';
-      const ytMatch=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-      const vmMatch=url.match(/vimeo\.com\/(\d+)/);
-      if(ytMatch) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin-bottom:12px"><iframe src="https://www.youtube.com/embed/${ytMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--radius)" allowfullscreen></iframe></div>`;
-      if(vmMatch) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin-bottom:12px"><iframe src="https://player.vimeo.com/video/${vmMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--radius)" allowfullscreen></iframe></div>`;
-      return url?`<a href="${url}" target="_blank" class="btn btn-sm" style="margin-bottom:12px">▶️ Watch Video</a>`:'';
+      const yt=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+      const vm=url.match(/vimeo\.com\/(\d+)/);
+      if(yt) return `<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:var(--radius);overflow:hidden;margin-bottom:14px"><iframe src="https://www.youtube.com/embed/${yt[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe></div>`;
+      if(vm) return `<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:var(--radius);overflow:hidden;margin-bottom:14px"><iframe src="https://player.vimeo.com/video/${vm[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe></div>`;
+      return url?`<a href="${url}" target="_blank" class="btn btn-sm" style="margin-bottom:14px">▶️ Watch Video</a>`:'';
     }
-    if(b.type==='link') return b.val?`<a href="${b.val}" target="_blank" class="btn btn-primary btn-sm" style="margin-bottom:12px;display:inline-flex">🔗 ${b.label||'Open Link'}</a> `:'';
-    if(b.type==='file') return b.val?`<a href="${b.val}" target="_blank" class="btn btn-sm" style="margin-bottom:12px;display:inline-flex">📎 ${b.label||'Download File'}</a> `:'';
-    if(b.type==='image') return b.val?`<img src="${b.val}" style="max-width:100%;border-radius:var(--radius);margin-bottom:12px" alt="Module image">`:'';
+    if(b.type==='link') return b.val?`<div style="margin-bottom:14px"><a href="${b.val}" target="_blank" class="btn btn-primary btn-sm">🔗 ${b.label||'Open Link'}</a></div>`:'';
+    if(b.type==='file') return b.val?`<div style="margin-bottom:14px"><a href="${b.val}" target="_blank" class="btn btn-sm">📎 ${b.label||'Download File'}</a></div>`:'';
+    if(b.type==='image'){
+      if(!b.val) return '';
+      const src=convertImageUrl(b.val);
+      const isImg=/\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i.test(src)||src.includes('drive.google.com/uc');
+      if(!isImg) return `<div style="margin-bottom:14px"><a href="${b.val}" target="_blank" class="btn btn-primary btn-sm">🔗 ${b.label||'Open Link'}</a></div>`;
+      return `<div style="margin-bottom:14px"><img src="${src}" style="max-width:100%;border-radius:var(--radius);display:block" onerror="this.parentElement.innerHTML='<div style=\\'padding:12px;background:var(--surface2);border-radius:var(--radius);font-size:12px;color:var(--text3)\\'>⚠️ Image could not load. Check the URL or sharing settings.</div>'"></div>`;
+    }    if(b.type==='upload'){
+      const uid='upload_'+co.id+'_'+modIdx+'_'+Math.random().toString(36).slice(2,6);
+      return `<div style="border:1px solid var(--brand-gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;background:var(--accent-bg)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">📤 ${b.label||'Upload Required Document'}</div>
+        ${b.instructions?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px">${b.instructions}</div>`:''}
+        <div style="font-size:11px;color:var(--danger);font-weight:500;margin-bottom:10px">⚠️ Required to complete this module</div>
+        <input type="file" id="${uid}" accept="*/*" onchange="handleLearnerUpload('${uid}',this)" style="display:none">
+        <label for="${uid}" class="btn btn-primary btn-sm" style="cursor:pointer;display:inline-flex">📎 Choose File</label>
+        <span id="${uid}_status" style="font-size:12px;color:var(--text2);margin-left:10px">No file chosen</span>
+      </div>`;
+    }
+    if(b.type==='form'&&b.fields?.length){
+      const fid='form_'+co.id+'_'+modIdx+'_'+Math.random().toString(36).slice(2,5);
+      const fieldHTML=b.fields.map((f,fi)=>{
+        const inputId=fid+'_'+fi;
+        if(f.type==='textarea') return `<div class="form-group"><label class="form-label">${f.label}</label><textarea id="${inputId}" placeholder="${f.placeholder||''}" rows="3"></textarea></div>`;
+        if(f.type==='date') return `<div class="form-group"><label class="form-label">${f.label}</label><input type="date" id="${inputId}" style="cursor:pointer"></div>`;
+        if(f.type==='select'){
+          const opts=(f.placeholder||'').split(',').map(o=>o.trim()).filter(Boolean);
+          return `<div class="form-group"><label class="form-label">${f.label}</label><select id="${inputId}"><option value="">Select...</option>${opts.map(o=>`<option>${o}</option>`).join('')}</select></div>`;
+        }
+        if(f.type==='checkbox') return `<div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="${inputId}"> ${f.label}</label></div>`;
+        return `<div class="form-group"><label class="form-label">${f.label}</label><input type="text" id="${inputId}" placeholder="${f.placeholder||''}"></div>`;
+      }).join('');
+      return `<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:14px;background:var(--surface)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:14px">📝 Please fill out the form below</div>
+        ${fieldHTML}
+        <button class="btn btn-primary" onclick="submitLearnerForm('${fid}',${co.id},${modIdx})">Submit →</button>
+      </div>`;
+    }
     return '';
   }
 
   c.innerHTML=`
-  <div class="grid2" style="align-items:start">
-    <div>
-      <!-- Course header card -->
-      <div class="card section-gap" style="padding:16px 18px">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="font-size:36px;flex-shrink:0">${co.emoji}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:16px;font-weight:600;margin-bottom:2px">${co.title}</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${co.cat} · ${co.dur}</div>
-            <div class="progress-bar" style="margin:0 0 4px"><div class="progress-fill" style="width:${pct}%"></div></div>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:11px;color:var(--text3)">${pct}% complete</span>
-              <span class="badge ${pct===100?'badge-success':pct>50?'badge-blue':'badge-warn'}">${pct===100?'✓ Done':pct+'% done'}</span>
-            </div>
-          </div>
+  <div style="max-width:680px;margin:0 auto">
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="font-size:36px">${co.emoji}</div>
+        <div>
+          <div style="font-size:18px;font-weight:600">${co.title}</div>
+          <div style="font-size:12px;color:var(--text3)">${co.cat} · ${co.dur} · ${totalMods} module${totalMods!==1?'s':''}</div>
         </div>
       </div>
-
-      <!-- Module content cards -->
-      ${contentMods.map((m,i)=>{
-        const blocks=m.blocks||[];
-        const hasContent=blocks.length>0;
-        const isVideo=m.type==='video';
-        const videoBlock=isVideo?blocks.find(b=>b.type==='video'):null;
-        return `<div class="card section-gap">
-          <div class="card-title" style="display:flex;align-items:center;gap:8px">
-            <span>${{doc:'📄',video:'▶️',quiz:'📝'}[m.type]||'📄'}</span>
-            ${m.t}
-          </div>
-          ${hasContent
-            ? blocks.map(b=>renderBlock(b)).join('')
-            : `<div style="font-size:13px;color:var(--text3);padding:8px 0;font-style:italic">Content coming soon.</div>`}
-        </div>`;
-      }).join('')}
-
-      <!-- Quiz section -->
-      ${hasQuiz ? `
-      <div class="card">
-        <div class="card-title">📝 ${mods.find(m=>m.type==='quiz')?.t||'Knowledge Check'}</div>
-        ${!S.quizReady ? `
-        <div style="text-align:center;padding:16px">
-          <button class="btn btn-primary" onclick="S.quizReady=true;renderCourseDetail(document.getElementById('mainContent'))">I've finished the content — Take Quiz →</button>
-        </div>` : renderQuiz()}
-      </div>` : ''}
-
-      <!-- Completion card -->
-      ${pct===100||S.signedOff?`
-      <div class="card" style="background:var(--success-bg);border-color:var(--success-border)">
-        <div style="text-align:center;padding:8px 0">
-          <div style="font-size:32px;margin-bottom:8px">🏆</div>
-          <div style="font-size:15px;font-weight:600;color:var(--success);margin-bottom:4px">Course Complete!</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Signed off by Sean Kirby · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-          <button class="btn btn-sm btn-success" onclick="openCertificate(co.title,'Kristin Harrington',new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),'Sean Kirby',Math.round(S.quiz.score/Math.max(QUIZ.length,1)*100)+'%')">🏆 View Certificate</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+          <div style="height:100%;border-radius:4px;background:var(--brand-gold);width:${pct}%;transition:width 0.4s ease"></div>
         </div>
-      </div>`:''}
-    </div>
-
-    <!-- Right sidebar: module list -->
-    <div>
-      <div class="card section-gap">
-        <div class="card-title">Course Modules</div>
-        ${mods.map((m,i)=>{
-          const done=(m.type==='video'&&S.videoWatched)||(m.type==='quiz'&&qs.done&&qs.score>=3);
-          const icons={doc:'📄',video:'▶️',quiz:'📝'};
-          return `<div class="module-row">
-            <div class="module-icon ${m.type}">${icons[m.type]||'📄'}</div>
-            <div style="flex:1;font-size:13px;font-weight:500">${m.t}</div>
-            <div class="check-c ${done?'done':''}">${done?'✓':i+1}</div>
-          </div>`;
-        }).join('')}
+        <span style="font-size:12px;font-weight:600;color:var(--accent);min-width:36px;text-align:right">${pct}%</span>
       </div>
-
-      ${!S.signedOff&&!S.quizReady?`
-      <div class="signoff-box">
-        <div style="font-size:13px;font-weight:600;margin-bottom:6px">Ready to complete?</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Complete all modules, then take the quiz to earn your certificate.</div>
-        <button class="btn btn-sm btn-primary" onclick="S.quizReady=true;renderCourseDetail(document.getElementById('mainContent'))">Start Quiz →</button>
-      </div>`:''}
     </div>
+
+    ${mods.map((m,i)=>{
+      const isQuiz=m.type==='quiz';
+      const modulesBefore=mods.slice(0,i).filter(m=>m.type!=='quiz');
+      const allBeforeDone=modulesBefore.every((_, j)=>{
+        const realIdx=mods.indexOf(modulesBefore[j]);
+        return S.completedModules[co.id].includes(realIdx);
+      });
+      const quizLocked=isQuiz&&!allBeforeDone;
+      const isDone=(m.type==='quiz'&&qs.done&&qs.score>=Math.ceil(getActiveQuiz().length*0.75))||(S.completedModules[co.id].includes(i));
+      const isActive=S.activeModuleIdx[co.id]===i&&!quizLocked;
+      return `
+      <div style="margin-bottom:8px;border:1px solid ${isActive?'var(--brand-gold)':isDone?'var(--success-border)':'var(--border)'};border-radius:var(--radius-lg);overflow:hidden;transition:all 0.15s">
+        <div onclick="${quizLocked?`toast('Complete all modules before taking the quiz.')`:`toggleLearnerModule(${co.id},${i})`}"
+          style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:${quizLocked?'not-allowed':'pointer'};background:${isActive?'var(--accent-bg)':isDone?'var(--success-bg)':quizLocked?'var(--surface2)':'var(--surface)'}">
+          <div style="width:28px;height:28px;border-radius:50%;border:2px solid ${isDone?'var(--success)':isActive?'var(--brand-gold)':quizLocked?'var(--border2)':'var(--border2)'};
+            background:${isDone?'var(--success)':isActive?'var(--brand-gold)':'transparent'};
+            display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;
+            color:${isDone||isActive?'#fff':'var(--text3)'}">
+            ${isDone?'✓':quizLocked?'🔒':i+1}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:${isDone?'var(--success)':isActive?'var(--accent)':quizLocked?'var(--text3)':'var(--text)'}">${m.t}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">${{doc:'Reading',video:'Video',quiz:'Quiz',upload:'Upload'}[m.type]||'Module'}${isDone?' · Completed':quizLocked?' · Complete all modules first':''}</div>
+          </div>
+          <div style="font-size:12px;color:var(--text3)">${quizLocked?'🔒':isActive?'▲':'▼'}</div>
+        </div>
+        ${isActive?`
+        <div style="border-top:1px solid var(--border);padding:20px;background:var(--surface)">
+          ${m.type==='quiz'?
+            (!S.quizReady?`<div style="text-align:center;padding:12px 0">
+              <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Ready to test your knowledge?</div>
+              <button class="btn btn-primary" onclick="S.quizReady=true;S.quiz={q:0,sel:null,answered:false,score:0,done:false};renderCourseDetail(document.getElementById('mainContent'))">Start Quiz →</button>
+            </div>`:renderQuiz(co.id,i))
+          :`
+            ${(m.blocks||[]).length?(m.blocks||[]).map(b=>renderBlock(b,i)).join(''):`<div style="font-size:13px;color:var(--text3);font-style:italic">Content coming soon.</div>`}
+            ${isDone?`<div style="margin-top:12px;font-size:12px;color:var(--success);font-weight:500">✓ Completed</div>`:''}
+          `}
+        </div>`:''}
+      </div>`;
+    }).join('')}
+
+    ${pct===100?`
+    <div style="margin-top:20px;padding:24px;background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-lg);text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">🏆</div>
+      <div style="font-size:15px;font-weight:600;color:var(--success);margin-bottom:8px">Course Complete!</div>
+      <button class="btn btn-sm" style="background:var(--success);color:#fff;border-color:var(--success)"
+        onclick="openCertificate('${co.title}','${USERS[S.role].name}',new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),'${LEARNERS.find(l=>l.name===USERS[S.role].name)?.manager||'Manager'}','Pass')">
+        🏆 View Certificate
+      </button>
+    </div>`:''}
   </div>`;
+
+  // auto-pop certificate on first completion
+  if(pct===100){
+    if(!S.completedCourses) S.completedCourses={};
+    if(!S.completedCourses[co.id]){
+      S.completedCourses[co.id]={
+        title:co.title, emoji:co.emoji,
+        date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+        manager:LEARNERS.find(l=>l.name===USERS[S.role].name)?.manager||'Manager'
+      };
+      logActivity(USERS[S.role].name,'🏆',`Completed course: ${co.title}`);
+      setTimeout(()=>openCertificate(
+        co.title, USERS[S.role].name,
+        new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+        S.completedCourses[co.id].manager, 'Pass'
+      ), 600);
+    }
+  }
 }
 
+function toggleLearnerModule(courseId, idx){
+  if(!S.activeModuleIdx) S.activeModuleIdx={};
+  if(!S.completedModules) S.completedModules={};
+  if(!S.completedModules[courseId]) S.completedModules[courseId]=[];
 
-function renderQuiz(){
+  const mods=COURSE_MODULES[courseId]||[];
+  const m=mods[idx];
+
+  // block quiz if modules BEFORE it aren't done
+  if(m?.type==='quiz'){
+    const modulesBefore=mods.slice(0,idx).filter(m=>m.type!=='quiz');
+    const allDone=modulesBefore.every(bm=>{
+      const realIdx=mods.indexOf(bm);
+      return S.completedModules[courseId].includes(realIdx);
+    });
+    if(!allDone){
+      toast('🔒 Complete the modules above before taking this quiz.');
+      return;
+    }
+  }
+
+  const isOpening=S.activeModuleIdx[courseId]!==idx;
+  S.activeModuleIdx[courseId]=isOpening?idx:null;
+
+  // auto-complete non-quiz, non-form/upload modules on open
+  const requiresAction=m&&(m.blocks||[]).some(b=>b.type==='form'||b.type==='upload');
+  if(isOpening&&m&&m.type!=='quiz'&&!requiresAction&&!S.completedModules[courseId].includes(idx)){
+    S.completedModules[courseId].push(idx);
+    const courseName=COURSES.find(c=>c.id===courseId)?.title||'a course';
+    logActivity(USERS[S.role].name,'✅',`Completed module: "${m.t}" — ${courseName}`);
+  }
+
+  renderCourseDetail(document.getElementById('mainContent'));
+}
+
+function completeModule(courseId, idx){
+  if(!S.completedModules) S.completedModules={};
+  if(!S.completedModules[courseId]) S.completedModules[courseId]=[];
+  if(!S.completedModules[courseId].includes(idx)) S.completedModules[courseId].push(idx);
+  const mods=COURSE_MODULES[courseId]||[];
+  const next=mods.findIndex((_,i)=>i>idx&&!S.completedModules[courseId].includes(i));
+  S.activeModuleIdx[courseId]=next>=0?next:null;
+  renderCourseDetail(document.getElementById('mainContent'));
+}
+
+function getActiveQuiz(){
+  const co=COURSES.find(x=>x.id===S.activeCourseId);
+  if(!co) return QUIZ;
+  const qs=COURSE_QUIZZES[co.id];
+  return (qs&&qs.length&&qs[0].q)?qs:QUIZ;
+}
+
+function renderQuiz(courseId, modIdx){
   const qs=S.quiz;
+  const ACTIVE_QUIZ=getActiveQuiz();
+  if(!ACTIVE_QUIZ||!ACTIVE_QUIZ.length){
+    return `<div style="text-align:center;padding:20px 0;color:var(--text3);font-style:italic">No quiz questions added yet. Add a Quiz module using the + Add Module wizard.</div>`;
+  }
+  const passScore=Math.ceil(ACTIVE_QUIZ.length*0.75);
   if(qs.done){
-    const pct=Math.round(qs.score/QUIZ.length*100);
-    const passed=qs.score>=3;
+    const pct=Math.round(qs.score/ACTIVE_QUIZ.length*100);
+    const passed=qs.score>=passScore;
+    // mark quiz module complete if passed
+    if(passed&&courseId!=null&&modIdx!=null){
+      if(!S.completedModules) S.completedModules={};
+      if(!S.completedModules[courseId]) S.completedModules[courseId]=[];
+      if(!S.completedModules[courseId].includes(modIdx)) S.completedModules[courseId].push(modIdx);
+    }
     return `<div style="text-align:center;padding:20px 0">
       <div style="font-size:40px;margin-bottom:10px">${passed?'🏆':'📚'}</div>
-      <div style="font-size:22px;font-weight:700;margin-bottom:6px">${qs.score}/${QUIZ.length} Correct</div>
-      <div style="font-size:14px;color:var(--text2);margin-bottom:6px">${pct}% — ${passed?'Passed! Great work.':'Score 75% or higher to pass.'}</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:6px">${qs.score}/${ACTIVE_QUIZ.length} Correct</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:12px">${pct}% — ${passed?'Passed! Great work.':'Score '+Math.round(passScore/ACTIVE_QUIZ.length*100)+'% or higher to pass.'}</div>
       ${passed
-        ?`<div class="callout callout-success" style="margin:14px 0">Quiz complete! Continue to the next module.</div>
-          <button class="btn btn-primary" onclick="retakeQuiz()">Continue to Next Module</button>`
+        ?`<div class="callout callout-success" style="margin:14px 0">✓ Quiz passed!</div>
+          <button class="btn btn-primary" onclick="retakeQuiz()">Continue →</button>`
         :`<div class="callout callout-warn" style="margin:14px 0">Not quite — give it another try!</div>
           <button class="btn" onclick="retakeQuiz()">↺ Try Again</button>`}
     </div>`;
   }
-  const q=QUIZ[qs.q];
+  const q=ACTIVE_QUIZ[qs.q];
+  if(!q) return '';
   return `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:11px;color:var(--text3);font-weight:500">QUESTION ${qs.q+1} OF ${QUIZ.length}</span>
-      <div style="display:flex;gap:4px">${QUIZ.map((_,i)=>`<div style="width:20px;height:3px;border-radius:2px;background:${i<qs.q?'var(--accent)':i===qs.q?'var(--accent-mid)':'var(--border2)'}"></div>`).join('')}</div>
+      <span style="font-size:11px;color:var(--text3);font-weight:500">QUESTION ${qs.q+1} OF ${ACTIVE_QUIZ.length}</span>
+      <div style="display:flex;gap:4px">${ACTIVE_QUIZ.map((_,i)=>`<div style="width:20px;height:3px;border-radius:2px;background:${i<qs.q?'var(--accent)':i===qs.q?'var(--accent-mid)':'var(--border2)'}"></div>`).join('')}</div>
     </div>
     <div style="font-size:14px;font-weight:500;margin-bottom:16px;line-height:1.5">${q.q}</div>
     ${q.opts.map((o,i)=>`
@@ -2482,25 +3259,36 @@ function renderQuiz(){
       <div class="quiz-letter">${qs.answered&&i===q.correct?'✓':qs.answered&&qs.sel===i&&i!==q.correct?'✕':String.fromCharCode(65+i)}</div>
       ${o}
     </div>`).join('')}
-    ${qs.answered?`<button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="nextQ()">${qs.q<QUIZ.length-1?'Next Question →':'See Results'}</button>`:''}`;
+    ${qs.answered&&qs.q<ACTIVE_QUIZ.length-1?`<button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="nextQ(${courseId??'null'},${modIdx??'null'})">Next Question →</button>`:''}`;
+}
+
+function nextQ(courseId, modIdx){
+  const ACTIVE_QUIZ=getActiveQuiz();
+  if(S.quiz.q<ACTIVE_QUIZ.length-1){
+    S.quiz.q++;
+    S.quiz.sel=null;
+    S.quiz.answered=false;
+  } else {
+    S.quiz.done=true;
+  }
+  renderCourseDetail(document.getElementById('mainContent'));
 }
 
 function pickAns(i){
   if(S.quiz.answered) return;
-  S.quiz.sel=i;S.quiz.answered=true;
-  if(i===QUIZ[S.quiz.q].correct) S.quiz.score++;
-  renderCourseDetail(document.getElementById('mainContent'));
-}
-function nextQ(){
-  if(S.quiz.q<QUIZ.length-1){S.quiz.q++;S.quiz.sel=null;S.quiz.answered=false;}
-  else{
+  S.quiz.sel=i;
+  S.quiz.answered=true;
+  const ACTIVE_QUIZ=getActiveQuiz();
+  if(i===ACTIVE_QUIZ[S.quiz.q].correct) S.quiz.score++;
+  // if last question, show results immediately
+  if(S.quiz.q>=ACTIVE_QUIZ.length-1){
     S.quiz.done=true;
-    if(S.quiz.score>=3){S.progress=Math.min(80,S.progress+20);toast('Quiz passed! Great work.');}
   }
   renderCourseDetail(document.getElementById('mainContent'));
 }
 function retakeQuiz(){
   S.quiz={q:0,sel:null,answered:false,score:0,done:false};
+  S.quizReady=false;
   renderCourseDetail(document.getElementById('mainContent'));
 }
 // ─── VIDEO TRACKING ENGINE ─────────────────────────────────────────────────
@@ -2576,33 +3364,40 @@ function reqSignoff(){
 
 // ─── COMPLETED ─────────────────────────────────────────────────────────────
 function renderCompleted(c){
+  const done=Object.entries(S.completedCourses||{});
+  const learnerName=USERS[S.role].name;
+
+  if(!done.length){
+    c.innerHTML=`
+    <div class="empty" style="padding:60px 20px">
+      <div class="empty-icon">🎓</div>
+      <div class="empty-title">No completed courses yet</div>
+      <div style="font-size:13px;margin-bottom:16px">Complete a course to earn your first certificate!</div>
+      <button class="btn btn-primary" onclick="go('my-courses')">Browse My Courses</button>
+    </div>`;
+    return;
+  }
+
   c.innerHTML=`
-  <div class="table-wrap" style="margin-bottom:20px">
+  <div class="table-wrap">
     <table>
-      <thead><tr><th>Course</th><th>Completed</th><th>Score</th><th>Signed Off By</th><th>Certificate</th></tr></thead>
+      <thead><tr><th>Course</th><th>Completed</th><th>Manager</th><th>Certificate</th></tr></thead>
       <tbody>
+        ${done.map(([id,info])=>`
         <tr>
-          <td><div style="display:flex;align-items:center;gap:8px"><span>🔒</span><span style="font-weight:500">Security Fundamentals</span></div></td>
-          <td>Mar 20, 2026</td>
-          <td><span class="badge badge-success">88%</span></td>
-          <td>Sean Kirby</td>
-          <td><button class="btn btn-sm btn-primary" onclick="openCertificate('Security Fundamentals','Kristin Harrington','Mar 20, 2026','Sean Kirby','88%')">🏆 View Certificate</button></td>
-        </tr>
-        ${S.signedOff?`<tr>
-          <td><div style="display:flex;align-items:center;gap:8px"><span>⚖️</span><span style="font-weight:500">Compliance & Ethics</span></div></td>
-          <td>Mar 27, 2026</td>
-          <td><span class="badge badge-success">${Math.round(S.quiz.score/QUIZ.length*100)}%</span></td>
-          <td>Sean Kirby</td>
-          <td><button class="btn btn-sm btn-primary" onclick="openCertificate('Compliance & Ethics','Kristin Harrington','Mar 27, 2026','Sean Kirby','${Math.round(S.quiz.score/QUIZ.length*100)}%')">🏆 View Certificate</button></td>
-        </tr>`:''}
+          <td><div style="display:flex;align-items:center;gap:8px">
+            <span>${info.emoji||'📚'}</span>
+            <span style="font-weight:500">${info.title}</span>
+          </div></td>
+          <td>${info.date}</td>
+          <td>${info.manager}</td>
+          <td><button class="btn btn-sm btn-primary" onclick="openCertificate('${info.title}','${learnerName}','${info.date}','${info.manager}','Pass')">🏆 View Certificate</button></td>
+        </tr>`).join('')}
       </tbody>
     </table>
   </div>
-  <div class="empty">
-    <div class="empty-icon">🎓</div>
-    <div class="empty-title">Keep up the great work!</div>
-    <div style="font-size:13px">Complete more courses to earn additional certifications.</div>
-    <button class="btn btn-primary" style="margin-top:14px" onclick="go('my-courses')">Browse My Courses</button>
+  <div style="margin-top:16px;text-align:center">
+    <button class="btn btn-primary" onclick="go('my-courses')">📚 Back to My Courses</button>
   </div>`;
 }
 
@@ -2903,10 +3698,9 @@ function renderPlaybook(c){
   c.innerHTML=`
   <div class="grid4 section-gap">
     <div class="metric-card"><div class="metric-label">Total Docs</div><div class="metric-value">${docs.filter(d=>d.status==='published').length}</div></div>
-    <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--success)">${myCompleted.length}</div></div>
     <div class="metric-card"><div class="metric-label">Pending</div><div class="metric-value" style="color:var(--warn)">${myPending.length}</div></div>
-    ${isAdmin?`<div class="metric-card"><div class="metric-label">Drafts</div><div class="metric-value" style="color:var(--text3)">${PLAYBOOK_DOCS.filter(d=>d.status==='draft').length}</div></div>`
-    :`<div class="metric-card"><div class="metric-label">Complete</div><div class="metric-value">${myCompleted.length===docs.filter(d=>d.status==='published').length?'✓ All done':'Keep going'}</div></div>`}
+    <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--success)">${myCompleted.length}</div></div>
+    ${isAdmin?`<div class="metric-card"><div class="metric-label">Drafts</div><div class="metric-value" style="color:var(--text3)">${PLAYBOOK_DOCS.filter(d=>d.status==='draft').length}</div></div>`:''}
   </div>
 
   <div class="search-bar">
@@ -2921,6 +3715,35 @@ function renderPlaybook(c){
   </div>
 
   <div id="docList">${renderDocRows(docs)}</div>`;
+}
+
+function deleteDoc(id){
+  const d=PLAYBOOK_DOCS.find(x=>x.id===id);
+  if(!d) return;
+  // show inline confirmation in the card
+  const btn=document.querySelector(`button[onclick="deleteDoc(${id})"]`);
+  if(btn&&btn.dataset.confirming!=='true'){
+    btn.dataset.confirming='true';
+    btn.textContent='⚠️ Confirm Delete';
+    btn.style.background='var(--danger)';
+    btn.style.color='#fff';
+    btn.style.borderColor='var(--danger)';
+    setTimeout(()=>{
+      btn.dataset.confirming='';
+      btn.textContent='🗑️ Delete';
+      btn.style.background='';
+      btn.style.color='';
+      btn.style.borderColor='';
+    }, 3000);
+    return;
+  }
+  const idx=PLAYBOOK_DOCS.findIndex(x=>x.id===id);
+  if(idx>-1){
+    PLAYBOOK_DOCS.splice(idx,1);
+    lsSave();
+    toast(`"${d.title}" deleted.`);
+    renderDocsTab(document.getElementById('cl-docs'));
+  }
 }
 
 function renderDocRows(docs){
@@ -2945,7 +3768,8 @@ function renderDocRows(docs){
           ${!isDraft?`<button class="btn btn-sm ${done?'':'btn-primary'}" onclick="openDocReader(${d.id})">${done?'Review':'Read & Complete'}</button>`:''}
           ${isAdmin?`
             <button class="btn btn-sm" onclick="openEditDoc(${d.id})">✏️ Edit</button>
-            <button class="btn btn-sm" onclick="openDelegateDoc(${d.id})">👤 Delegate</button>`:``}
+            <button class="btn btn-sm" onclick="openDelegateDoc(${d.id})">👤 Delegate</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteDoc(${d.id})" style="padding:4px 10px">🗑️ Delete</button>`:``}
         </div>
       </div>
     </div>`;
@@ -3606,6 +4430,22 @@ function saveAnnouncement(){
   closeModal();
   renderAnnouncements(document.getElementById('mainContent'));
 }
+function acknowledgeAnnouncement(id, cb){
+  if(!S.acknowledgedAnnouncements) S.acknowledgedAnnouncements=[];
+  if(cb.checked){
+    if(!S.acknowledgedAnnouncements.includes(id)) S.acknowledgedAnnouncements.push(id);
+    const ann=ANNOUNCEMENTS.find(a=>a.id===id);
+    if(ann) logActivity(USERS[S.role].name,'📢',`Acknowledged announcement: "${ann.title}"`);
+  } else {
+    S.acknowledgedAnnouncements=S.acknowledgedAnnouncements.filter(x=>x!==id);
+  }
+  const label=document.getElementById('ack-label-'+id);
+  if(label){
+    label.textContent=cb.checked?'✓ Acknowledged':'I have read and understood this announcement';
+    label.style.color=cb.checked?'var(--success)':'var(--text3)';
+  }
+}
+
 function dismissAnnouncement(id){
   if(!S.dismissedAnnouncements) S.dismissedAnnouncements=[];
   S.dismissedAnnouncements.push(id);
@@ -3863,7 +4703,21 @@ function lsClear(){
   setTimeout(()=>location.reload(), 1200);
 }
 
+// ── SEED DATA (baked in from last saved session) ──────────────────────────
+const _SEED = {"COURSES":[{"id":1,"emoji":"🏢","title":"Who We Are, What We Do & How We Do It","cat":"Onboarding","color":"#dbeafe","mods":7,"dur":"45 minutes","enrolled":18,"completed":0},{"id":2,"emoji":"⭐","title":"Core Values","cat":"Onboarding","color":"#fef3dc","mods":3,"dur":"15 minutes","enrolled":18,"completed":0},{"id":5,"emoji":"🗓️","title":"Your First Week","cat":"Onboarding","color":"#e1f5ee","mods":4,"dur":"25 minutes","enrolled":18,"completed":0},{"id":6,"emoji":"🛠️","title":"Tools We Use","cat":"Onboarding","color":"#faeeda","mods":3,"dur":"20 minutes","enrolled":18,"completed":0},{"id":7,"emoji":"📋","title":"Policies & Expectations","cat":"Onboarding","color":"#fdeaea","mods":4,"dur":"30 minutes","enrolled":18,"completed":0},{"id":8,"emoji":"💰","title":"Compensation & Benefits","cat":"Onboarding","color":"#e8f0fd","mods":4,"dur":"25 minutes","enrolled":18,"completed":0},{"id":9,"emoji":"🎯","title":"Your Role & Goals","cat":"Onboarding","color":"#eaf3de","mods":3,"dur":"20 minutes","enrolled":18,"completed":0},{"id":1774657566975,"emoji":"📚","title":"Products","cat":"Sales","color":"#dbeafe","mods":1,"dur":"30 minutes","enrolled":0,"completed":0}],"COURSE_MODULES":{"1":[{"t":"Our Story","type":"doc","status":"published","blocks":[]},{"t":"Mission & Vision","type":"video","status":"published","blocks":[]},{"t":"Our Products & Services","type":"doc","status":"published","blocks":[]},{"t":"Who We Serve","type":"doc","status":"published","blocks":[]},{"t":"Our Process & Approach","type":"doc","status":"published","blocks":[]},{"t":"What Makes Us Different","type":"video","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"2":[{"t":"Our Core Values","type":"doc","status":"published","blocks":[]},{"t":"Values in Action — Real Examples","type":"video","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"5":[{"t":"Before Day 1 — What to Prepare","type":"doc","status":"published","blocks":[]},{"t":"Day 1 Checklist","type":"doc","status":"published","blocks":[]},{"t":"Who to Go to For What","type":"doc","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"6":[{"t":"Communication Tools","type":"doc","status":"published","blocks":[]},{"t":"Project & Task Management","type":"doc","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"7":[{"t":"Code of Conduct","type":"doc","status":"published","blocks":[]},{"t":"Work Hours & Remote Policy","type":"doc","status":"published","blocks":[]},{"t":"Confidentiality & Data Privacy","type":"doc","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"8":[{"t":"Your Pay — Schedule & Structure","type":"doc","status":"published","blocks":[]},{"t":"Health, Dental & Vision","type":"doc","status":"published","blocks":[]},{"t":"401k, PTO & Wellness","type":"doc","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"9":[{"t":"Understanding Your Job Description","type":"doc","status":"published","blocks":[]},{"t":"How Success is Measured","type":"doc","status":"published","blocks":[]},{"t":"Your 30/60/90 Day Plan","type":"video","status":"published","blocks":[]},{"t":"Knowledge Check","type":"quiz","status":"published","blocks":[]}],"1774657566975":[{"t":"Ab Coaster","type":"doc","status":"published","blocks":[{"type":"text","val":"Learn about the Ab Coaster and various models"}]}]},"COURSE_QUIZZES":{"1":[{"q":"[Add your question about Who We Are]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"2":[{"q":"[Add your question about Core Values]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"5":[{"q":"[Add your question about Your First Week]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"6":[{"q":"[Add your question about Tools We Use]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"7":[{"q":"[Add your question about Policies & Expectations]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"8":[{"q":"[Add your question about Compensation & Benefits]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"9":[{"q":"[Add your question about Your Role & Goals]","opts":["Option A","Option B","Option C","Option D"],"correct":0}],"1774657566975":[]},"CAT_ORDER":{"Onboarding":[1,2,5,6,7,8,9],"Sales":[1774657566975],"Human Resources":[],"Operations":[],"Customer Experience":[],"Marketing":[]},"CATS":[{"name":"Onboarding","desc":"Everything a new team member needs to get up to speed at The Abs Company."},{"name":"Sales","desc":"Sales process, outreach strategies, tools, and closing techniques."},{"name":"Human Resources","desc":"Policies, benefits, performance expectations, and employee resources."},{"name":"Operations","desc":"Workflows, processes, systems, and how we keep things running smoothly."},{"name":"Customer Experience","desc":"How we serve our customers, handle inquiries, and build lasting relationships."},{"name":"Marketing","desc":"Brand guidelines, campaigns, content strategy, and digital marketing."}]};
+function seedIfEmpty(){
+  // Only seed if localStorage has nothing yet
+  if(localStorage.getItem('tac_lms_v1')) return;
+  if(_SEED.COURSES?.length) COURSES.splice(0,COURSES.length,..._SEED.COURSES);
+  if(_SEED.CATS?.length) CATS.splice(0,CATS.length,..._SEED.CATS);
+  if(_SEED.COURSE_MODULES) Object.assign(COURSE_MODULES,_SEED.COURSE_MODULES);
+  if(_SEED.COURSE_QUIZZES) Object.assign(COURSE_QUIZZES,_SEED.COURSE_QUIZZES);
+  if(_SEED.CAT_ORDER) Object.assign(CAT_ORDER,_SEED.CAT_ORDER);
+  console.log('✅ Seeded from baked-in data');
+}
+
 // Load saved data before rendering
+seedIfEmpty();
 lsLoad();
 
 switchRole('admin');
